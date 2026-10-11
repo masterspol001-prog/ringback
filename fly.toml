@@ -1,0 +1,50 @@
+# Fly.io deployment for RingBack.
+#
+# One-time:
+#   fly launch --no-deploy --copy-config --name your-ringback-app
+#   fly volumes create ringback_data --size 1 --region sin
+#   fly secrets set RB_ADMIN_EMAIL=you@example.com RB_ADMIN_PASSWORD='a-long-password'
+#   fly secrets set RB_RAZORPAY_LINK='https://razorpay.me/@yourhandle'
+#   fly deploy
+#
+# Then set your DNS or use the provided *.fly.dev hostname.
+
+app = "your-ringback-app"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  HOST = "0.0.0.0"
+  RINGBACK_DATA_DIR = "/data"
+  RB_SECURE_COOKIES = "1"
+
+[[mounts]]
+  source = "ringback_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[checks.health]
+  type = "http"
+  port = 8080
+  path = "/health"
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"

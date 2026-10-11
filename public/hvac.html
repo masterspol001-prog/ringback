@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RingBack for HVAC — Recover missed AC and heating jobs</title>
+<meta name="description" content="RingBack recovers missed HVAC calls: no-heat and AC-down texts, qualification, booking, and follow-up. Estimated vs verified revenue on the dashboard. Model, not a guarantee." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230b1220'/%3E%3Cpath d='M28 26h12l6 14-8 6a38 38 0 0016 16l6-8 14 6v12a8 8 0 01-9 8A58 58 0 0120 35a8 8 0 018-9z' fill='%232ee6a8'/%3E%3C/svg%3E" />
+<style>
+:root{--bg:#080d16;--card:#111c2e;--line:#1e2d45;--text:#e8eef7;--muted:#93a4bd;--accent:#2ee6a8;--accent2:#38bdf8;--radius:16px}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#12243d 0%,var(--bg) 55%) no-repeat,var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px}
+nav{border-bottom:1px solid var(--line);backdrop-filter:blur(12px);background:rgba(8,13,22,.78)}
+nav .wrap{display:flex;justify-content:space-between;align-items:center;height:64px}
+.brand{font-weight:800;display:flex;gap:10px;align-items:center}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#04121a;font-weight:900}
+.btn{display:inline-flex;align-items:center;border-radius:11px;padding:11px 18px;font-weight:700;font-size:14.5px}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#22c9a0);color:#04121a}
+.btn-ghost{border:1px solid var(--line)}
+h1{font-size:clamp(32px,5vw,48px);letter-spacing:-.03em;line-height:1.1;margin:28px 0 16px}
+.lead{color:var(--muted);font-size:18px;margin:0 0 24px}
+.eyebrow{color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.12em}
+.card{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin:14px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:14px;margin-top:40px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="brand" href="/"><span class="logo">R</span> RingBack</a>
+  <a href="/#start" class="btn btn-primary">Get RingBack Live in 48 Hours</a>
+</div></nav>
+<main class="wrap" style="padding:48px 20px 20px">
+  <span class="eyebrow">First niche: HVAC</span>
+  <h1>You're already paying for the leads. Don't lose the AC job when you can't respond.</h1>
+  <p class="lead">When a homeowner has no cooling at 11:30 PM, they call the next listing. RingBack texts them back in seconds, asks address and timing, flags Normal / Urgent / Emergency, and offers appointment times — then shows Potential vs Estimated vs Verified revenue. Not an AI receptionist.</p>
+  <div class="cta-row">
+    <a href="/#calculator" class="btn btn-primary">See How Much RingBack Could Recover</a>
+    <a href="/?biz=HVAC&amp;ch=missed_call#demo" class="btn btn-ghost">Watch a Live Demo</a>
+  </div>
+  <p class="small muted">No contract. Done-for-you setup. Pay after you see it working. This page does not claim guaranteed jobs or ROI.</p>
+
+  <div class="grid" style="margin-top:28px">
+    <div class="card"><h3>AC repair / no cool</h3><p class="muted small">Asks what stopped working, where, and how soon. Does not invent a diagnostic fee.</p></div>
+    <div class="card"><h3>No heat</h3><p class="muted small">Treated as urgent after hours. Escalates to you. Never claims a tech is rolling unless you confirm.</p></div>
+    <div class="card"><h3>Maintenance / install</h3><p class="muted small">Qualifies timing and address, then offers configured or demo availability — labeled, never invented as a live calendar.</p></div>
+    <div class="card"><h3>Emergency</h3><p class="muted small">Gas smell, no heat, AC down in extreme heat: flag, alert owner, do not give dangerous advice.</p></div>
+  </div>
+
+  <div class="card">
+    <h3>Why HVAC first</h3>
+    <p class="muted small">High after-hours call volume, high average job value, callers who will not leave voicemail, and a clear emergency language set. Plumbing and electrical use the same loop after ten HVAC shops prove recovered jobs.</p>
+  </div>
+  <p class="small muted">Plumbing, electrical, roofing, and clinic pages wait until HVAC conversion is proven. <a href="/" style="color:var(--accent2)">Back to RingBack</a>.</p>
+</main>
+<footer><div class="wrap">hello@ringback.app · RingBack doesn't sell AI. It helps you recover money from customers you already lost.</div></footer>
+<script>
+fetch("/api/analytics",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"page_view",path:"/hvac",label:"hvac"})}).catch(()=>{});
+</script>
+</body>
+</html>

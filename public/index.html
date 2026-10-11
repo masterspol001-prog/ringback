@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RingBack — Recover money from customers you already lost</title>
+<meta name="description" content="RingBack follows up with missed callers, qualifies the job, helps book the appointment, and tracks the revenue that comes back. Your 24/7 lead recovery employee for HVAC and local service businesses." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230b1220'/%3E%3Cpath d='M28 26h12l6 14-8 6a38 38 0 0016 16l6-8 14 6v12a8 8 0 01-9 8A58 58 0 0120 35a8 8 0 018-9z' fill='%232ee6a8'/%3E%3C/svg%3E" />
+<style>
+:root{
+  --bg:#080d16; --bg2:#0d1524; --card:#111c2e; --line:#1e2d45;
+  --text:#e8eef7; --muted:#93a4bd; --accent:#2ee6a8; --accent2:#38bdf8;
+  --warn:#fbbf24; --radius:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:radial-gradient(1200px 600px at 70% -10%,#12243d 0%,var(--bg) 55%) no-repeat,var(--bg);
+  color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(8,13,22,.78);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;font-size:18px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#04121a;font-weight:900}
+.navlinks{display:flex;gap:26px;align-items:center;color:var(--muted);font-size:14.5px}
+.navlinks a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:11px;padding:11px 18px;font-weight:700;font-size:14.5px;border:1px solid transparent;cursor:pointer;transition:.15s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#22c9a0);color:#04121a}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(46,230,168,.25)}
+.btn-ghost{border-color:var(--line);color:var(--text);background:rgba(255,255,255,.02)}
+.btn-ghost:hover{border-color:#33486a}
+section{padding:84px 0}
+h1{font-size:clamp(34px,5.4vw,58px);line-height:1.06;letter-spacing:-.03em;margin:0 0 20px}
+h2{font-size:clamp(26px,3.4vw,38px);letter-spacing:-.025em;margin:0 0 14px;line-height:1.15}
+h3{margin:0 0 8px;font-size:18px}
+p.lead{color:var(--muted);font-size:18.5px;max-width:620px;margin:0 0 30px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.12em;margin-bottom:18px}
+.pill{border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:999px;padding:6px 13px;font-size:13px;color:var(--muted)}
+.hero{padding-top:64px;padding-bottom:40px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.trustline{color:var(--muted);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
+.trustline b{color:var(--text)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+.phone{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.phone-top{display:flex;align-items:center;gap:10px;padding:4px 6px 14px;border-bottom:1px solid var(--line);color:var(--muted);font-size:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.chat{display:flex;flex-direction:column;gap:12px;padding:16px 6px 6px;min-height:250px}
+.bubble{max-width:82%;padding:11px 14px;border-radius:15px;font-size:14.5px;animation:pop .35s ease both}
+.bubble.in{background:#182741;border:1px solid #24395c;border-bottom-left-radius:5px;align-self:flex-start}
+.bubble.out{background:linear-gradient(135deg,#12402f,#0f3325);border:1px solid #1d6a4c;border-bottom-right-radius:5px;align-self:flex-end}
+.bubble .meta{display:block;font-size:11px;color:var(--muted);margin-top:6px}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;background:rgba(46,230,168,.12);color:var(--accent);border:1px solid rgba(46,230,168,.3);border-radius:999px;padding:4px 10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:rgba(56,189,248,.13);color:var(--accent2);border:1px solid rgba(56,189,248,.3);margin-bottom:14px}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+label{display:block;font-size:13px;color:var(--muted);margin:0 0 6px;font-weight:600}
+input,select,textarea{width:100%;background:#0b1524;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px 12px;font:inherit;font-size:14.5px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.calc-out{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.stat{background:#0b1524;border:1px solid var(--line);border-radius:12px;padding:16px}
+.stat .big{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--accent)}
+.stat .big.blue{color:var(--accent2)}
+.stat span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.slider-row{display:flex;align-items:center;gap:12px}
+.slider-row input[type=range]{flex:1}
+.slider-row .val{min-width:78px;text-align:right;font-weight:700}
+.price{position:relative;display:flex;flex-direction:column}
+.price.featured{border-color:rgba(46,230,168,.55);box-shadow:0 0 0 1px rgba(46,230,168,.25),0 20px 60px rgba(46,230,168,.08)}
+.price .tag{position:absolute;top:-12px;right:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#04121a;font-size:12px;font-weight:800;border-radius:999px;padding:4px 12px}
+.price .amount{font-size:38px;font-weight:800;letter-spacing:-.03em;margin:8px 0 2px}
+.price .amount small{font-size:15px;font-weight:600;color:var(--muted)}
+.price ul{list-style:none;padding:0;margin:18px 0 22px;display:flex;flex-direction:column;gap:10px;font-size:14.5px}
+.price li{display:flex;gap:9px;align-items:flex-start;color:#cdd9ea}
+.tick{color:var(--accent);font-weight:900;flex:none}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.07em}
+td.us{color:var(--accent);font-weight:700}
+details{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:10px;background:rgba(255,255,255,.02)}
+summary{cursor:pointer;font-weight:700;list-style:none}
+summary::-webkit-details-marker{display:none}
+details p{color:var(--muted);margin:10px 0 0}
+.success{display:none;background:rgba(46,230,168,.08);border:1px solid rgba(46,230,168,.4);border-radius:12px;padding:18px;margin-top:16px}
+.err{color:#ffb4b4}
+footer{border-top:1px solid var(--line);padding:36px 0;color:var(--muted);font-size:14px}
+.checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chk{display:flex;gap:9px;align-items:center;font-size:14px;color:#cdd9ea;background:#0b1524;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.chk input{width:auto}
+@media(max-width:860px){
+  .hero-grid,.grid3,.grid2,.calc-out,.row{grid-template-columns:1fr}
+  .navlinks{display:none}
+  section{padding:60px 0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="logo">R</span> RingBack</div>
+    <div class="navlinks">
+      <a href="#calculator">Lost revenue</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">Live demo</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#start" class="btn btn-primary">Get RingBack Live in 48 Hours</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">Revenue recovery for missed and unanswered leads — HVAC first</span>
+      <h1>You're already paying for the leads. Don't lose them when you can't respond.</h1>
+      <p class="lead">RingBack responds instantly, qualifies the customer, helps book the job, and tracks the revenue you recover. Predictable automation. Reliability over AI. Not an AI receptionist.</p>
+      <div class="cta-row">
+        <a href="#calculator" class="btn btn-primary" data-cta="calculator" style="font-size:16px;padding:15px 26px">See How Much RingBack Could Recover</a>
+      </div>
+      <div class="trustline">
+        <span><b>No contract</b></span>
+        <span><b>Done-for-you setup</b></span>
+        <span><b>48-hour launch</b></span>
+        <span><b>Pay after you see it working</b></span>
+      </div>
+      <p class="small muted" style="margin:16px 0 0">RingBack doesn't sell AI. It helps you recover money from customers you already lost. We do not guarantee jobs or ROI.</p>
+    </div>
+    <div class="phone">
+       <div class="phone-top"><span class="dot"></span> Missed call · 11:30 PM · ABC HVAC</div>
+       <div class="chat" id="heroChat">
+          <div class="bubble in">Missed call from Sarah Patel (512) 555‑8821<span class="meta">RingBack detected the missed call</span></div>
+          <div class="bubble out">Sorry we missed you, this is ABC HVAC. AC down after hours? Tell me the address and when you need someone and I'll get you a time.<span class="meta">Demo: reply sent in 8 seconds</span></div>
+         <div class="bubble in">1200 Barton Springs Rd, Austin. Tonight if possible.<span class="meta">Caller replies</span></div>
+          <div class="bubble out">Got it — AC repair in Austin tonight. Demo availability: Saturday, Oct 10 at 9:00 AM, 1:00 PM, or 4:00 PM. Reply 1, 2, or 3 and I'll confirm. Times offered — not a booking.<span class="meta">Demo availability — not a live calendar</span></div>
+       </div>
+    </div>
+  </div>
+</header>
+
+<section id="calculator">
+  <div class="wrap grid2" style="gap:40px;align-items:start">
+    <div>
+      <span class="eyebrow">The math</span>
+      <h2>How much are you missing?</h2>
+      <p class="muted">A missed HVAC call is often a missed repair or install — not a voicemail. Most callers hang up and dial the next Google listing. Move the sliders to match your shop. This is a model. It is not a promise.</p>
+      <div class="card" style="margin-top:20px">
+        <label for="calls">Missed calls per week</label>
+        <div class="slider-row"><input id="calls" type="range" min="1" max="60" value="12" /><span class="val" id="callsVal">12</span></div>
+        <div style="height:14px"></div>
+        <label for="job">Average job value ($)</label>
+        <div class="slider-row"><input id="job" type="range" min="80" max="8000" step="20" value="460" /><span class="val" id="jobVal">$460</span></div>
+        <div style="height:14px"></div>
+        <label for="close">Current close rate on live conversations (%)</label>
+        <div class="slider-row"><input id="close" type="range" min="5" max="80" value="30" /><span class="val" id="closeVal">30%</span></div>
+        <div style="height:14px"></div>
+        <label for="recovery">Estimated recovery rate (%)</label>
+        <div class="slider-row"><input id="recovery" type="range" min="10" max="60" value="30" /><span class="val" id="recoveryVal">30%</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="small muted">Model only. Default recovery 30%. Plan cost uses Starter ($99/mo).</div>
+          <div class="stat" style="margin-bottom:14px"><div class="big" id="lost">$—</div><span>ESTIMATED potential monthly opportunity</span></div>
+          <p class="small" style="color:var(--warn);font-weight:700;margin:0 0 14px">Potential opportunity is not guaranteed revenue. This is not verified revenue.</p>
+        <div class="card" style="background:#0b1524;padding:16px;margin-bottom:14px">
+          <strong class="small">RingBack's job</strong>
+          <p class="small muted" style="margin:6px 0 0">Recover the conversations you currently lose.</p>
+          <p class="small" style="margin:12px 0 0" id="threeJobLine">If RingBack recovered even 3 additional jobs/month, that's $1,380 in additional booked revenue.</p>
+        </div>
+        <div class="calc-out">
+          <div class="stat"><div class="big blue" id="recovered">$—</div><span>ESTIMATED recoverable value</span></div>
+          <div class="stat"><div class="big" id="cost">$99</div><span>RingBack cost (Starter)</span></div>
+          <div class="stat"><div class="big" id="net">$—</div><span>ESTIMATED net value</span></div>
+          <div class="stat"><div class="big blue" id="roi">—</div><span>Illustrative ROI (estimated value / subscription)</span></div>
+        </div>
+        <p class="small" style="margin:16px 0 0" id="coverLine"><b>RingBack: $99/month.</b> 1 recovered job can cover the subscription.</p>
+        <p class="small muted" style="margin:14px 0 18px">This is a model, not a guaranteed result. Live proof is estimated vs verified revenue on your dashboard after jobs are marked won.</p>
+        <details id="calcWhy" style="margin:0 0 18px">
+          <summary>How is this calculated?</summary>
+          <p id="calcWhyBody">Inputs, formula, and result appear here when you move the sliders.</p>
+        </details>
+        <a href="#start" class="btn btn-primary" style="width:100%;justify-content:center" data-cta="setup-from-calc">Get RingBack Live in 48 Hours</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo" style="background:linear-gradient(180deg,rgba(56,189,248,.04),transparent)">
+  <div class="wrap">
+    <span class="eyebrow">Watch a live demo</span>
+    <h2>Talk like a customer. Watch the job get recovered.</h2>
+    <p class="muted" style="max-width:640px">Same engine that texts your missed callers. Type a real job. RingBack detects service, location, urgency, and intent, then asks the next question. No invented prices. Next action is always visible.</p>
+    <div class="grid2" style="margin-top:26px;gap:26px">
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="demoBiz">Your business type</label>
+            <select id="demoBiz">
+              <option value="HVAC">HVAC</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Roofing">Roofing</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="Landscaping">Landscaping</option>
+              <option value="Dental clinic">Dental clinic</option>
+              <option value="Medical clinic">Medical clinic</option>
+              <option value="Med spa">Med spa</option>
+              <option value="Real estate">Real estate</option>
+            </select>
+          </div>
+          <div>
+            <label for="demoChannel">Channel</label>
+            <select id="demoChannel">
+              <option value="missed_call">Missed call</option>
+              <option value="sms" selected>SMS</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="facebook">Facebook Messenger</option>
+              <option value="instagram">Instagram DM</option>
+              <option value="google_ads">Google Ads lead</option>
+              <option value="webchat">Website chat</option>
+              <option value="web_form">Website form</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <label for="demoInput">Customer message</label>
+        <textarea id="demoInput" rows="2">My AC isn't working and I'm in Austin. Can somebody come tonight?</textarea>
+        <div style="height:12px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="demoBtn" style="flex:1;justify-content:center">Send message</button>
+          <button class="btn btn-ghost" id="demoReset">Reset chat</button>
+        </div>
+        <div style="height:12px"></div>
+        <div class="small muted">Quick replies:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="quickReplies"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <strong class="small">Conversation</strong>
+          <span class="badge" id="intentBadge">waiting</span>
+        </div>
+        <div class="chat" id="demoChat" style="padding:0;min-height:260px">
+          <div class="bubble out" style="max-width:100%">Type like a customer. Try: "My AC isn't working and I'm in Austin. Can somebody come tonight?"</div>
+        </div>
+        <div id="followups" style="margin-top:16px"></div>
+        <div class="small muted" id="engineNote" style="margin-top:12px"></div>
+        <div id="ownerSnapshot" class="card" style="margin-top:14px;padding:14px;display:none"></div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:18px">Shareable demos: <a href="/?biz=HVAC&amp;ch=missed_call#demo" style="color:var(--accent2)">ABC HVAC missed call</a> · <a href="/?biz=Plumbing&amp;ch=whatsapp#demo" style="color:var(--accent2)">plumber on WhatsApp</a> · <a href="/?biz=Dental%20clinic&amp;ch=missed_call#demo" style="color:var(--accent2)">dental missed call</a> · <a href="/?biz=Medical%20clinic&amp;ch=sms#demo" style="color:var(--accent2)">clinic on SMS</a></p>
+  </div>
+</section>
+
+<section id="channels">
+  <div class="wrap">
+    <span class="eyebrow">Start here</span>
+    <h2>Missed call to SMS to booking. That's the product.</h2>
+    <p class="muted" style="max-width:640px">Launch with unanswered-call recovery. Other channels stay in the engine so a later shop can add them. The first paid loop is missed call, text back, qualify, book, follow up, verified dollars.</p>
+    <div class="grid3" style="margin-top:30px" id="channelGrid"></div>
+  </div>
+</section>
+
+<section id="beforeafter" style="background:linear-gradient(180deg,rgba(46,230,168,.03),transparent)">
+  <div class="wrap">
+    <span class="eyebrow">Before / after</span>
+    <h2>What actually changes on Monday morning.</h2>
+    <div class="grid2" style="margin-top:28px">
+      <div class="card" style="border-color:rgba(248,113,113,.28)">
+        <div class="badge" style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);color:#f87171">Before RingBack</div>
+        <ul style="list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:12px;font-size:14.5px;color:#cdd9ea">
+          <li>9:12am — a call comes in while you're with a customer. It rings out. No voicemail.</li>
+          <li>9:13am — they are already on the next Google result. Lead gone. You never knew.</li>
+          <li>11:40am — a web form sits in an inbox you check tonight.</li>
+          <li>6:30pm — you call back. No answer. You forget to try again.</li>
+          <li>End of week — "things were quiet." You don't know how much you lost.</li>
+        </ul>
+      </div>
+      <div class="card" style="border-color:rgba(46,230,168,.35)">
+        <div class="badge">With RingBack</div>
+        <ul style="list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:12px;font-size:14.5px;color:#cdd9ea">
+          <li>9:12am — the call rings out. RingBack detects the missed call and texts back as your business.</li>
+          <li>9:14am — they reply with what they need. The lead is captured and scored hot.</li>
+          <li>9:15am — they get real appointment times. Offered, not booked, until they confirm.</li>
+          <li>11:40am — the web form gets an instant reply too, same playbook.</li>
+          <li>Friday — the dashboard shows how many customers came back and what they were worth.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="how">
+  <div class="wrap">
+    <span class="eyebrow">How it works</span>
+    <h2>Lead in. Job recovered. Dollars reported.</h2>
+    <div class="grid3" style="margin-top:30px">
+      <div class="card"><div class="num">1</div><h3>Connect your number</h3><p class="muted small">Point unanswered calls on your existing line to RingBack. Customers keep calling the number they already know.</p></div>
+      <div class="card"><div class="num">2</div><h3>We install your playbook</h3><p class="muted small">Missed-call text-back, qualification questions, emergency routing, booking slots, and 4h / 24h / 72h follow-up in your voice.</p></div>
+      <div class="card"><div class="num">3</div><h3>You see estimated vs verified dollars</h3><p class="muted small">Every lead shows intent, urgency, estimated value, and status. Booked jobs are estimated. Mark won with an invoice to verify. That is the proof.</p></div>
+    </div>
+    <div class="grid3" style="margin-top:20px">
+      <div class="card"><h3>Respond immediately</h3><p class="muted small">Missed call, SMS, form, or ad lead — first reply in seconds, 24/7.</p></div>
+      <div class="card"><h3>Qualify and book</h3><p class="muted small">Service, location, timing, emergency flag. Times offered. Confirmed only after they pick.</p></div>
+      <div class="card"><h3>Follow up and report</h3><p class="muted small">If they go quiet, RingBack nudges. The dashboard tracks estimated vs verified dollars.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" style="background:linear-gradient(180deg,rgba(46,230,168,.035),transparent)">
+  <div class="wrap">
+    <span class="eyebrow">Pricing</span>
+    <h2>Priced against one recovered job, not against software seats.</h2>
+    <p class="muted" style="max-width:640px">One recovered job can pay for RingBack. We do not promise it will — the dashboard makes the economics visible after the first missed call.</p>
+    <div class="grid3" style="margin-top:34px;align-items:stretch">
+      <div class="card price">
+        <h3>Starter</h3>
+        <div class="muted small"><b>Recover missed calls.</b> For owner-operators.</div>
+        <div class="amount">$99<small>/mo</small></div>
+        <div class="small muted">+ $0 setup for the first 10 customers</div>
+        <ul>
+          <li><span class="tick">✓</span> Missed-call recovery, 24/7</li>
+          <li><span class="tick">✓</span> Instant SMS text-back</li>
+          <li><span class="tick">✓</span> Lead dashboard + owner pings</li>
+          <li><span class="tick">✓</span> Done-for-you setup in 48h</li>
+        </ul>
+        <a href="#start" class="btn btn-ghost" data-plan="Starter" style="margin-top:auto;justify-content:center">Start with Starter</a>
+      </div>
+      <div class="card price featured">
+        <span class="tag">Most popular</span>
+        <h3>Professional</h3>
+        <div class="muted small"><b>Recover more leads.</b> For growing HVAC companies.</div>
+        <div class="amount">$199<small>/mo</small></div>
+        <div class="small muted">+ $0 setup for the first 10 customers</div>
+        <ul>
+          <li><span class="tick">✓</span> Everything in Starter</li>
+          <li><span class="tick">✓</span> Website, Facebook, and Google Ads leads</li>
+          <li><span class="tick">✓</span> Configurable follow-up (4h / 24h / 72h)</li>
+          <li><span class="tick">✓</span> Booking links + calendar slots</li>
+          <li><span class="tick">✓</span> Hot / warm / cold scoring with reasons</li>
+        </ul>
+        <a href="#start" class="btn btn-primary" data-plan="Professional" style="margin-top:auto;justify-content:center">Get set up in 48h</a>
+      </div>
+      <div class="card price">
+        <h3>Business</h3>
+        <div class="muted small"><b>Recover revenue across locations.</b> For established companies.</div>
+        <div class="amount">$349<small>/mo</small></div>
+        <div class="small muted">+ $149 setup</div>
+        <ul>
+          <li><span class="tick">✓</span> Everything in Professional</li>
+          <li><span class="tick">✓</span> Multiple numbers / locations</li>
+          <li><span class="tick">✓</span> Custom playbooks + owner takeover</li>
+          <li><span class="tick">✓</span> Estimated vs verified revenue report</li>
+        </ul>
+        <a href="#start" class="btn btn-ghost" data-plan="Business" style="margin-top:auto;justify-content:center">Talk to us</a>
+      </div>
+    </div>
+    <div class="card" style="margin-top:24px;border-color:rgba(46,230,168,.4)">
+      <strong>First 10 HVAC businesses</strong>
+      <p class="small muted" style="margin:8px 0 0">We install it for free. Use RingBack for 30 days. We configure your recovery agent, show you every recovered conversation, and track booked and completed jobs. If you don't see value, don't continue. No contract.</p>
+    </div>
+    <p class="small muted" style="margin-top:20px">SMS usage is billed at cost (about $0.01 per message) for high-volume accounts. Month to month. No guaranteed ROI.</p>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="wrap">
+    <span class="eyebrow">Why RingBack</span>
+    <h2>RingBack is built around one measurable outcome: recovering missed opportunities and tracking what happens afterward.</h2>
+    <p class="muted" style="max-width:680px;margin-top:8px">We don't promise that every missed call becomes a job. We respond quickly, follow your configured playbook, show you exactly what happened, and never call estimated revenue verified revenue.</p>
+    <div class="card" style="margin-top:26px;overflow-x:auto">
+      <table>
+        <thead><tr><th></th><th>RingBack measures</th></tr></thead>
+        <tbody>
+          <tr><td>Job to be done</td><td class="us">Recover missed opportunities and track what happens afterward</td></tr>
+          <tr><td>After-hours follow-up</td><td class="us">Configured 4h / 24h / 72h sequence, stoppable by the owner or STOP</td></tr>
+          <tr><td>Emergency routing</td><td class="us">Detects, applies shop policy, notifies owner. Does not dispatch a tech</td></tr>
+          <tr><td>Proof of value</td><td class="us">Estimated vs verified revenue, with a Why? for every estimate</td></tr>
+          <tr><td>Time to live</td><td class="us">48 hours, done for you</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap" style="max-width:820px">
+    <span class="eyebrow">FAQ</span>
+    <h2>How numbers, data, emergencies, and unknowns work</h2>
+    <div style="margin-top:22px">
+      <details><summary>How do phone numbers work?</summary><p>You keep your existing business number. Unanswered calls forward to RingBack, which texts the caller back as your shop. We do not replace the number customers already know.</p></details>
+      <details><summary>How is customer data handled?</summary><p>We store what is needed to recover the job: name, phone, messages, qualification, appointment, and status. You can export or delete it. We do not sell lead data.</p></details>
+      <details><summary>SMS compliance</summary><p>Every outbound text includes a way to stop. STOP / opt-out marks the lead do-not-contact and cancels follow-up. We only text people who called or messaged your business.</p></details>
+      <details><summary>Call recording and transcription</summary><p>Missed-call recovery today is SMS after the unanswered call. Live AI answering is a later plan. If recording is ever enabled, it is opt-in and disclosed. Nothing is recorded by default in this product.</p></details>
+      <details><summary>Security and retention</summary><p>Access is session-authenticated. Data lives in your RingBack database (SQLite or JSON). Retention is until you export or delete. No fake trust badges.</p></details>
+      <details><summary>Human escalation</summary><p>You can take over any conversation. RingBack pauses auto-replies until you return it. Urgent leads also alert you instead of pretending to dispatch.</p></details>
+      <details><summary>What happens during emergencies?</summary><p>Gas smell, flooding, sparking, or similar language is Emergency detected. RingBack applies your shop policy, notifies the owner, and tells the customer what is actually known. Dispatcher confirmed and Technician dispatched are separate states. RingBack never claims a technician is on the way unless you confirm. If no emergency policy is configured, it fails safely.</p></details>
+      <details><summary>What if RingBack does not know the answer?</summary><p>It asks one more qualifying question or offers a booking slot. It never invents prices, availability, or policies. FAQs only use copy you approved.</p></details>
+      <details><summary>Is there a contract?</summary><p>No. Month to month. The first 10 customers get setup free. We do not guarantee ROI.</p></details>
+    </div>
+  </div>
+</section>
+
+<section id="start" style="background:linear-gradient(180deg,rgba(56,189,248,.05),transparent)">
+  <div class="wrap grid2" style="gap:44px;align-items:start">
+    <div>
+      <span class="eyebrow">Give us 10 minutes. We'll set it up.</span>
+      <h2>Get RingBack Live in 48 Hours</h2>
+      <p class="muted">Business name, phone, services, area, hours, emergency policy, calendar. That's it. We install the missed-call recovery playbook. You watch one recovered conversation, then you decide. First 10 HVAC shops: setup free. No card to talk. No guaranteed ROI.</p>
+      <div class="card" style="margin-top:18px">
+        <strong class="small">Prefer to just talk?</strong>
+        <p class="small muted" style="margin:6px 0 0">Email <b>hello@ringback.app</b> with your number and what you do. We'll call you back — fitting, really.</p>
+      </div>
+    </div>
+    <div class="card">
+      <form id="setupForm">
+        <div class="row">
+           <div><label for="business">Business name *</label><input id="business" name="business" required placeholder="ABC HVAC" /></div>
+          <div><label for="name">Your name</label><input id="name" name="name" placeholder="Sam Patel" /></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row">
+          <div><label for="email">Email *</label><input id="email" name="email" type="email" required placeholder="you@company.com" /></div>
+          <div><label for="phone">Best number</label><input id="phone" name="phone" placeholder="+1 512 555 0142" /></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row">
+          <div><label for="trade">Business type</label>
+            <select id="trade" name="trade">
+              <option>HVAC</option><option>Plumbing</option><option>Electrical</option><option>Roofing</option>
+              <option>Cleaning</option><option>Landscaping</option><option>Pest control</option>
+              <option>Dental / clinic</option><option>Medical clinic</option><option>Med spa</option>
+              <option>Real estate</option><option>Other</option>
+            </select>
+          </div>
+          <div><label for="plan">Plan</label>
+            <select id="plan" name="plan"><option>Starter</option><option selected>Professional</option><option>Business</option></select>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row">
+          <div><label for="serviceArea">Service area</label><input id="serviceArea" name="serviceArea" placeholder="Austin, TX" /></div>
+          <div><label for="hours">Business hours</label><input id="hours" name="hours" placeholder="Mon-Sat, 8am-6pm" /></div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="row">
+          <div><label for="services">Services you offer</label><input id="services" name="services" placeholder="AC repair, furnace, tune-ups" /></div>
+          <div><label for="emergency">Emergency policy</label><input id="emergency" name="emergency" placeholder="After-hours emergencies get a same-night dispatch" /></div>
+        </div>
+        <div style="height:14px"></div>
+        <label for="bookingUrl">Where should leads book? (calendar link, optional)</label>
+        <input id="bookingUrl" name="bookingUrl" placeholder="https://cal.com/you/service-call" />
+        <div style="height:14px"></div>
+        <label>Channels you want covered</label>
+        <div class="checkbox-grid">
+          <label class="chk"><input type="checkbox" name="channels" value="missed_call" checked /> Missed calls</label>
+          <label class="chk"><input type="checkbox" name="channels" value="web_form" checked /> Website forms</label>
+          <label class="chk"><input type="checkbox" name="channels" value="facebook" /> Facebook leads</label>
+          <label class="chk"><input type="checkbox" name="channels" value="google_ads" /> Google Ads leads</label>
+        </div>
+        <div style="height:18px"></div>
+        <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;justify-content:center">Request my 48-hour setup</button>
+        <p class="small muted" style="margin:12px 0 0">No card required to talk. We only bill once it's live and you've seen it work.</p>
+      </form>
+      <div class="success" id="successBox"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap">
+    <div><div class="brand" style="margin-bottom:8px"><span class="logo">R</span> RingBack</div><div class="small">RingBack isn't an AI receptionist. It's a revenue recovery engine for missed and unanswered leads.</div></div>
+    <div class="small">hello@ringback.app · <a href="/hvac" style="color:var(--accent2)">HVAC</a> · home services, contractors, and clinics</div>
+  </div>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const money = (n) => "$" + Math.round(n).toLocaleString("en-US");
+
+// Plan cost shown in the calculator. Kept in sync with the pricing table below.
+const CALC_PLAN_COST = 99;
+
+function renderCalc(v) {
+  const job = +($("job") ? $("job").value : 460) || 460;
+  const calls = +($("calls") ? $("calls").value : 12);
+  const closePct = +($("close") ? $("close").value : 30);
+  const recoveryPct = +($("recovery") ? $("recovery").value : 30);
+  $("lost").textContent = money(v.lostPerMonth);
+  $("recovered").textContent = money(v.recoveredPerMonth);
+  if ($("cost")) $("cost").textContent = money(v.planCost || CALC_PLAN_COST);
+  const net = v.netPerMonth;
+  $("net").textContent = (net >= 0 ? "" : "-") + money(Math.abs(net));
+  $("roi").textContent = v.recoveredPerMonth > 0 ? v.roi.toFixed(1) + "x" : "—";
+  if ($("threeJobLine")) $("threeJobLine").textContent =
+    "If RingBack recovered even 3 additional jobs/month, at " + money(job) + "/job, that's " + money(job * 3) + " in additional booked revenue. That line is illustrative, not verified.";
+  if ($("coverLine")) $("coverLine").innerHTML =
+    "<b>RingBack: " + money(v.planCost || CALC_PLAN_COST) + "/month.</b> " +
+    (job > 0 ? Math.max(1, Math.ceil((v.planCost || CALC_PLAN_COST) / job)) + " recovered job" + (Math.ceil((v.planCost || CALC_PLAN_COST) / job) > 1 ? "s" : "") + " can cover the subscription." : "Recovered jobs can cover the subscription.");
+  const why = $("calcWhyBody");
+  if (why) {
+    const x = v.explanation;
+    const perMonth = x ? x.steps[0].result : calls * 4.33;
+    const jobs = x ? x.steps[1].result : perMonth * (closePct / 100) * (recoveryPct / 100);
+    const recovered = x ? x.steps[2].result : jobs * job;
+    const cost = v.planCost || CALC_PLAN_COST;
+    why.innerHTML =
+      "<b>STATUS: ESTIMATED.</b> This is not verified revenue.<br>" +
+      calls + " missed calls/week × 4.33 weeks = " + Number(perMonth).toFixed(2) + " missed calls/month<br>" +
+      "Average job value = " + money(job) + "<br>" +
+      "Current close rate = " + closePct + "%<br>" +
+      "Estimated recovery rate = " + recoveryPct + "%<br>" +
+      "Expected recovered jobs = " + Number(perMonth).toFixed(2) + " × " + (closePct / 100) + " × " + (recoveryPct / 100) + " = " + Number(jobs).toFixed(3) + "<br>" +
+      "Estimated recoverable value = " + Number(jobs).toFixed(3) + " × " + money(job) + " = " + money(recovered) + "<br>" +
+      "Illustrative ROI = estimated recovered value ÷ subscription = " + money(recovered) + " ÷ " + money(cost) + " = " + (cost > 0 ? (recovered / cost).toFixed(1) : "—") + "x. Not guaranteed.";
+  }
+}
+
+function calcLocal() {
+  const calls = +$("calls").value;
+  const job = +$("job").value;
+  const close = +$("close").value / 100;
+  const recovery = +$("recovery").value / 100;
+  const perMonth = calls * 4.33;
+  const lost = perMonth * close * job;
+  const recovered = lost * recovery;
+  const expectedJobs = perMonth * close * recovery;
+  return {
+    lostPerMonth: lost,
+    recoveredPerMonth: recovered,
+    planCost: CALC_PLAN_COST,
+    netPerMonth: recovered - CALC_PLAN_COST,
+    roi: recovered / CALC_PLAN_COST,
+    explanation: {
+      steps: [
+        { result: perMonth },
+        { result: expectedJobs },
+        { result: recovered },
+      ],
+    },
+  };
+}
+
+let calcTimer = null;
+function calc() {
+  const calls = +$("calls").value;
+  const job = +$("job").value;
+  const close = +$("close").value;
+  const recovery = +$("recovery").value;
+  $("callsVal").textContent = calls;
+  $("jobVal").textContent = money(job);
+  $("closeVal").textContent = Math.round(close) + "%";
+  $("recoveryVal").textContent = Math.round(recovery) + "%";
+
+  // Render immediately from local math, then refine with the server so the
+  // calculator uses exactly the same formula as the dashboard.
+  renderCalc(calcLocal());
+
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(() => {
+    const q = new URLSearchParams({ missedCallsPerWeek: calls, jobValue: job, closeRate: close, recoveryRate: recovery, plan: "starter" });
+    fetch("/api/value?" + q)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && d.value) renderCalc({ ...d.value, explanation: d.value.explanation || d.explanation }); })
+      .catch(() => {});
+  }, 250);
+}
+["calls", "job", "close", "recovery"].forEach((id) => $(id).addEventListener("input", calc));
+calc();
+
+const DEMO_HISTORY = [];
+let DEMO_BIZ = null;
+
+const BIZ_PROFILES = {
+    HVAC: { id: "demo-hvac", name: "ABC HVAC", trade: "hvac", serviceArea: "Austin, TX", bookingUrl: "https://cal.com/abc-hvac/service", phone: "+1 (512) 555-0142", hours: "Mon-Sat, 7am-7pm", offer: "free estimate on replacements", emergency: { available: true, policy: "After-hours emergencies get a same-night dispatch when a tech is available." }, services: [{ name: "AC repair", startingPrice: 189 }, { name: "Furnace repair", startingPrice: 219 }], starter: "My AC isn't working and I'm in Austin. Can somebody come tonight?", qs: [["No heat, today?", "No heat, 14 Oak St. Can you come today?"], ["Financing?", "Do you offer financing?"], ["Book tomorrow", "Book me for tomorrow morning"], ["Serve my area?", "Do you serve Round Rock?"]] },
+  Electrical: { id: "demo-electrical", name: "Volt & Co. Electric", trade: "electrical", serviceArea: "Nashville, TN", bookingUrl: "https://cal.com/volt/visit", phone: "+1 (615) 555-0190", hours: "Mon-Fri, 8am-6pm", offer: "free panel inspection with any install", emergency: { available: true, policy: "Sparking, burning smell, or no power to the house is treated as emergency." }, services: [{ name: "Panel upgrade", startingPrice: 1800 }, { name: "Outlet or switch repair", startingPrice: 129 }], starter: "Outlets are sparking in the kitchen. Can someone come today?", qs: [["Emergency?", "The outlets are sparking and I smell burning."], ["Panel upgrade", "I need a panel upgrade in Nashville this week."], ["Book tomorrow", "Book me for tomorrow morning"], ["Licensed?", "Are you licensed?"]] },
+  Plumbing: { id: "demo-plumbing", name: "Rivera Plumbing Co.", trade: "plumbing", serviceArea: "Denver, CO", bookingUrl: "https://cal.com/rivera/visit", phone: "+1 (303) 555-0177", hours: "Mon-Sat, 7am-8pm", offer: "free camera inspection with any drain job", services: [{ name: "Leak repair", startingPrice: 189 }, { name: "Drain cleaning", startingPrice: 149 }], starter: "Pipe is leaking under the sink. Can you come today?", qs: [["Burst pipe", "Pipe burst in the basement, water everywhere, need someone now"], ["Drain clog", "Kitchen drain is clogged in Denver."], ["Book tomorrow", "Book me for tomorrow morning"], ["Serve my area?", "Do you serve Lakewood?"]] },
+  Roofing: { id: "demo-roofing", name: "Summit Roofing", trade: "roofing", serviceArea: "Nashville, TN", bookingUrl: "https://cal.com/summit/inspection", phone: "+1 (615) 555-0121", hours: "Mon-Fri, 8am-6pm", offer: "free storm-damage inspection", services: [{ name: "Roof repair", startingPrice: 350 }], starter: "We had a storm last night and the roof is leaking.", qs: [["Inspection", "Can you inspect storm damage this week?"], ["Book tomorrow", "Book me for tomorrow morning"], ["Serve my area?", "Do you serve Franklin?"]] },
+  Cleaning: { id: "demo-cleaning", name: "BrightNest Cleaning", trade: "cleaning", serviceArea: "Phoenix, AZ", bookingUrl: "https://cal.com/brightnest/booking", phone: "+1 (602) 555-0143", hours: "Mon-Sat, 8am-6pm", offer: "10% off first deep clean", services: [{ name: "Deep clean", startingPrice: 189 }], starter: "How much for a deep clean of a 3-bed house in Tempe?", qs: [["Move-out", "Need a move-out clean this Saturday."], ["Recurring", "Do you do recurring cleans?"], ["Book tomorrow", "Book me for tomorrow morning"]] },
+  Landscaping: { id: "demo-landscaping", name: "Greenline Landscapes", trade: "landscaping", serviceArea: "Austin, TX", bookingUrl: "https://cal.com/greenline/visit", phone: "+1 (512) 555-0160", hours: "Mon-Fri, 8am-5pm", offer: "free lawn assessment", services: [{ name: "Lawn care", startingPrice: 89 }], starter: "Need lawn care this week in Austin.", qs: [["Tree trim", "Can you trim trees this week?"], ["Book tomorrow", "Book me for tomorrow morning"], ["Serve my area?", "Do you serve Round Rock?"]] },
+  "Dental clinic": { id: "demo-dental", name: "Oak Park Dental", trade: "dental", serviceArea: "Chicago, IL", bookingUrl: "https://cal.com/oakpark/appointment", phone: "+1 (312) 555-0165", hours: "Mon-Fri, 8am-5pm", offer: "new-patient exam and x-rays", services: [{ name: "New patient exam", startingPrice: 99 }, { name: "Cleaning", startingPrice: 129 }, { name: "Emergency visit", startingPrice: 159 }], starter: "I need a new patient exam this week. Do you take insurance?", qs: [["Tooth pain", "Tooth pain and swelling. Can I get in today?"], ["Insurance?", "Do you accept insurance?"], ["Book tomorrow", "Book me for tomorrow morning"], ["New patient", "I am a new patient, need a cleaning."]] },
+  "Medical clinic": { id: "demo-medical", name: "Riverside Family Clinic", trade: "medical", serviceArea: "Columbus, OH", bookingUrl: "https://cal.com/riverside/visit", phone: "+1 (614) 555-0133", hours: "Mon-Fri, 8am-6pm", offer: "same-week new-patient visits", services: [{ name: "New patient visit", startingPrice: 149 }, { name: "Sick visit", startingPrice: 99 }], starter: "I am a new patient and need a sick visit this week.", qs: [["Sick visit", "Not feeling well, can I come in today?"], ["Insurance?", "Do you accept insurance?"], ["Book tomorrow", "Book me for tomorrow morning"]] },
+  "Med spa": { id: "demo-medspa", name: "Lumen Med Spa", trade: "medspa", serviceArea: "Scottsdale, AZ", bookingUrl: "https://cal.com/lumen/consult", phone: "+1 (480) 555-0172", hours: "Tue-Sat, 10am-6pm", offer: "complimentary consult on first visit", services: [{ name: "Consult", startingPrice: 0 }, { name: "Facial", startingPrice: 149 }], starter: "I want a consult for a facial this week.", qs: [["Walk-in?", "Do you take walk-ins?"], ["Book tomorrow", "Book me for tomorrow morning"], ["First visit", "Do I need a consult first?"]] },
+  "Real estate": { id: "demo-realestate", name: "Kessler Realty Group", trade: "real estate", serviceArea: "Tampa, FL", bookingUrl: "https://cal.com/kessler/showing", phone: "+1 (813) 555-0188", hours: "Mon-Sun, 9am-8pm", offer: "free home valuation", services: [{ name: "Home valuation", startingPrice: 0 }], starter: "Can I get a home valuation this week in Tampa?", qs: [["Showing", "I want a buyer showing this weekend."], ["Book tomorrow", "Book me for tomorrow morning"]] },
+};
+
+const CHANNEL_INFO = {
+  missed_call: "Text back within seconds when a call goes unanswered.",
+  sms: "Two-way texting on your existing business number.",
+  whatsapp: "Reply to WhatsApp inquiries and click-to-chat ads.",
+  facebook: "Answer Page messages and lead-ad submissions.",
+  instagram: "Catch DMs from posts, reels, and profile taps.",
+  google_ads: "Instant response to lead-form submissions.",
+  webchat: "Answer your site visitors while you're on the job.",
+  web_form: "Auto-respond to contact and quote forms.",
+  email: "Reply to inquiry emails with the same playbook.",
+};
+
+function renderChannelGrid() {
+  const grid = $("channelGrid");
+  if (!grid) return;
+  grid.innerHTML = Object.entries(CHANNEL_INFO).map(([id, note]) =>
+    `<div class="card"><h3>${escapeHtml(id.replace(/_/g, " "))}</h3><p class="muted small">${escapeHtml(note)}</p></div>`
+  ).join("");
+}
+
+function addBubble(role, text, meta) {
+  const el = document.createElement("div");
+  el.className = "bubble " + (role === "in" ? "in" : "out");
+  el.style.maxWidth = "100%";
+  el.innerHTML = escapeHtml(text) + (meta ? '<span class="meta">' + escapeHtml(meta) + "</span>" : "");
+  $("demoChat").appendChild(el);
+  $("demoChat").scrollTop = $("demoChat").scrollHeight;
+}
+
+async function runDemo() {
+  const btn = $("demoBtn");
+  const message = $("demoInput").value.trim();
+  if (!message) return;
+  const bizName = $("demoBiz").value;
+  const channel = $("demoChannel").value;
+  DEMO_BIZ = BIZ_PROFILES[bizName] || BIZ_PROFILES.HVAC;
+
+  btn.disabled = true;
+  btn.textContent = "Replying...";
+  addBubble("in", message, "Customer");
+  DEMO_HISTORY.push({ role: "in", text: message });
+
+  try {
+    const r = await fetch("/api/demo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, channel, history: DEMO_HISTORY, business: DEMO_BIZ, name: "Alex" }),
+    });
+    const d = await r.json();
+    $("intentBadge").textContent = "intent: " + (d.intent || "general") + (d.urgent ? " · urgent" : "");
+    addBubble("out", d.reply, "RingBack · " + (d.channelLabel || channel));
+    DEMO_HISTORY.push({ role: "out", text: d.reply });
+
+    const fu = (d.followUp || []).map((f) =>
+      '<div class="small muted" style="margin-top:8px">+ ' + f.delayHours + 'h — ' + escapeHtml(f.text) + "</div>"
+    ).join("");
+    $("followups").innerHTML = fu ? '<div class="small muted" style="margin-bottom:4px">Follow-up sequence:</div>' + fu : "";
+    $("engineNote").textContent = d.engine && d.engine.startsWith("ai:")
+      ? "Reply drafted by " + d.engine + ". Prices are blocked unless you set them."
+      : "Reply from the built-in deterministic engine (no LLM key needed).";
+    renderOwnerSnapshot(d.ownerSnapshot);
+    track("demo_start", { label: bizName });
+    if (d.ownerSnapshot && (d.ownerSnapshot.status === "booked" || d.ownerSnapshot.status === "booking_requested" || DEMO_HISTORY.filter((t) => t.role === "in").length >= 3)) {
+      track("demo_complete", { label: bizName });
+    }
+  } catch (e) {
+    addBubble("out", "Could not reach the engine. Try again.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Send message";
+    $("demoInput").value = "";
+  }
+}
+
+function bindQuickReplies() {
+  const box = $("quickReplies");
+  if (!box) return;
+  const profile = BIZ_PROFILES[$("demoBiz").value] || BIZ_PROFILES.HVAC;
+  const qs = profile.qs || [["Book tomorrow", "Book me for tomorrow morning"]];
+  box.innerHTML = qs.map(([label, q]) => `<button class="btn btn-ghost small" data-q="${escapeHtml(q)}">${escapeHtml(label)}</button>`).join("");
+  box.querySelectorAll("[data-q]").forEach((b) => {
+    b.addEventListener("click", () => { $("demoInput").value = b.getAttribute("data-q"); runDemo(); });
+  });
+  if (profile.starter) $("demoInput").placeholder = profile.starter;
+}
+
+$("demoBtn").addEventListener("click", runDemo);
+function renderOwnerSnapshot(snap) {
+  const box = $("ownerSnapshot");
+  if (!box || !snap) return;
+  box.style.display = "block";
+  const value = snap.estimatedValue ? "$" + Math.round(snap.estimatedValue).toLocaleString("en-US") : "not estimated yet";
+  const appt = snap.appointment ? (snap.appointment.label || snap.appointment.start || "slot offered") : "none yet";
+  const vx = snap.valueExplanation || {};
+  const why = vx.jobValue
+    ? " Why? Service: " + escapeHtml(vx.service || "unknown") + ". Average job value $" + Math.round(vx.jobValue) +
+      (vx.closeProbability == null ? " (configured job value, no close rate applied)." : " × close probability " + vx.closeProbability + ".")
+    : "";
+  box.innerHTML =
+    "<strong class='small'>RingBack detected</strong>" +
+    "<p class='small' style='margin:8px 0 0'>Service: <b>" + escapeHtml(snap.service || "unknown") +
+    "</b> · Location: <b>" + escapeHtml(snap.location || "unknown") +
+    "</b> · Severity: <b>" + escapeHtml(snap.severity || snap.urgency || "normal") +
+    "</b> · Intent: <b>" + escapeHtml(snap.intent || "general") + "</b></p>" +
+    "<p class='small muted' style='margin:8px 0 0'><b>ESTIMATED</b> lead value: " + escapeHtml(value) +
+    " (" + escapeHtml(snap.revenueKind || "none") + "). Estimated — not verified revenue." + why + "</p>" +
+    "<p class='small' style='margin:8px 0 0'><b>Next action:</b> " + escapeHtml(snap.nextAction || "") +
+    " · Booking: " + escapeHtml(snap.bookingState || "available") +
+    " · Appointment: " + escapeHtml(String(appt)) + "</p>";
+}
+
+function track(type, extra) {
+  try {
+    fetch("/api/analytics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, path: location.pathname, ...(extra || {}) }),
+    }).catch(() => {});
+  } catch {}
+}
+
+$("demoReset").addEventListener("click", () => {
+  DEMO_HISTORY.length = 0;
+  $("demoChat").innerHTML = '<div class="bubble out" style="max-width:100%">Cleared. Send a new message to start over.</div>';
+  $("followups").innerHTML = "";
+  $("intentBadge").textContent = "waiting";
+  const snap = $("ownerSnapshot");
+  if (snap) { snap.style.display = "none"; snap.innerHTML = ""; }
+  $("engineNote").textContent = "";
+  const profile = BIZ_PROFILES[$("demoBiz").value] || BIZ_PROFILES.HVAC;
+  if (profile.starter) $("demoInput").value = profile.starter;
+});
+$("demoBiz").addEventListener("change", () => {
+  DEMO_HISTORY.length = 0;
+  $("demoChat").innerHTML = '<div class="bubble out" style="max-width:100%">Switched trade. Send a message to see that receptionist.</div>';
+  const profile = BIZ_PROFILES[$("demoBiz").value] || BIZ_PROFILES.HVAC;
+  if (profile.starter) $("demoInput").value = profile.starter;
+  bindQuickReplies();
+});
+$("demoInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runDemo(); }
+});
+
+// Shareable demo links: /?biz=Plumbing&ch=whatsapp#demo
+(function applyQueryPreset() {
+  const p = new URLSearchParams(location.search);
+  const biz = p.get("biz");
+  const ch = p.get("ch");
+  if (biz && BIZ_PROFILES[biz]) $("demoBiz").value = biz;
+  if (ch && CHANNEL_INFO[ch]) $("demoChannel").value = ch;
+})();
+
+renderChannelGrid();
+bindQuickReplies();
+const presetBiz = BIZ_PROFILES[$("demoBiz").value];
+if (presetBiz?.starter && !$("demoInput").value) $("demoInput").value = presetBiz.starter;
+track("page_view", { label: "home" });
+document.querySelectorAll("[data-cta]").forEach((el) => {
+  el.addEventListener("click", () => track("cta_click", { label: el.getAttribute("data-cta") || el.textContent }));
+});
+["calls", "job", "close", "recovery"].forEach((id) => {
+  const el = $(id);
+  if (el) el.addEventListener("change", () => track("calculator_used", { label: id }));
+});
+runDemo();
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+document.querySelectorAll("[data-plan]").forEach((a) => {
+  a.addEventListener("click", () => { $("plan").value = a.getAttribute("data-plan"); });
+});
+
+$("setupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+  const fd = new FormData(e.target);
+  const payload = Object.fromEntries(fd.entries());
+  payload.channels = fd.getAll("channels");
+  try {
+    const r = await fetch("/api/setup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || "failed");
+    const payBtn = d.checkout && d.checkout.url
+      ? '<p style="margin:14px 0 0"><a class="btn btn-primary" href="' + d.checkout.url +
+        '" target="_blank" rel="noopener">Pay for ' + escapeHtml(payload.plan || "your plan") + " now</a></p>"
+      : "";
+    $("successBox").style.display = "block";
+    $("successBox").innerHTML =
+      "<strong>You're in.</strong><p class='small muted' style='margin:8px 0 0'>Reference <b>" + d.setup.id +
+      "</b>. We'll email " + escapeHtml(d.setup.email) + " within one business day with your 10-minute setup call and go-live time.</p>" +
+      payBtn;
+    e.target.reset();
+    $("successBox").scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch (err) {
+    $("successBox").style.display = "block";
+    $("successBox").innerHTML = "<strong class='err'>Something went wrong.</strong><p class='small muted' style='margin:8px 0 0'>Email hello@ringback.app and we'll set you up manually.</p>";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Request my 48-hour setup";
+  }
+});
+
+// If the operator has configured a payment link, offer a direct "pay now"
+// path next to each plan. Nothing is fabricated when billing is not set up.
+(async function bindCheckout() {
+  try {
+    const s = await fetch("/api/billing/status").then((r) => r.json());
+    if (!s || !s.ready) {
+      document.querySelectorAll("[data-plan]").forEach((a) => {
+        if (a.dataset.plan.toLowerCase() === "business") {
+          a.textContent = "Talk to us";
+        }
+      });
+      return;
+    }
+    document.querySelectorAll(".price").forEach((card) => {
+      const cta = card.querySelector("[data-plan]");
+      if (!cta) return;
+      const plan = cta.getAttribute("data-plan").toLowerCase();
+      const link = document.createElement("a");
+      link.className = "small";
+      link.style.cssText = "display:block;text-align:center;margin-top:10px;color:var(--accent2)";
+      link.textContent = "or pay now";
+      link.href = "#";
+      link.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const r = await fetch("/api/billing/checkout?plan=" + encodeURIComponent(plan) + "&source=pricing").then((x) => x.json());
+        if (r.ok) window.open(r.url, "_blank", "noopener");
+      });
+      card.appendChild(link);
+    });
+  } catch {
+    // Non-fatal: the pre-sell form still works.
+  }
+})();
+</script>
+</body>
+</html>

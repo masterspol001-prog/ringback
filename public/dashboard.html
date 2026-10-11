@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RingBack — Estimated vs verified revenue</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230b1220'/%3E%3Cpath d='M28 26h12l6 14-8 6a38 38 0 0016 16l6-8 14 6v12a8 8 0 01-9 8A58 58 0 0120 35a8 8 0 018-9z' fill='%232ee6a8'/%3E%3C/svg%3E" />
+<style>
+:root{--bg:#080d16;--card:#111c2e;--card2:#0b1524;--line:#1e2d45;--text:#e8eef7;--muted:#93a4bd;--accent:#2ee6a8;--accent2:#38bdf8;--warn:#fbbf24;--red:#f87171;--purple:#a78bfa}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+nav{border-bottom:1px solid var(--line);background:rgba(8,13,22,.9);position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}
+nav .wrap{display:flex;justify-content:space-between;align-items:center;height:60px}
+.brand{display:flex;gap:10px;align-items:center;font-weight:800}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#04121a;font-weight:900}
+.nav-right{display:flex;gap:14px;align-items:center;font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--muted)}
+.dot.on{background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.dot.off{background:#3b4a63}
+main{padding:30px 0 70px}
+h1{font-size:27px;letter-spacing:-.02em;margin:0 0 4px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.stat .big{font-size:27px;font-weight:800;letter-spacing:-.03em}
+.stat span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.hot{color:var(--red)}.warm{color:var(--warn)}.cold{color:var(--muted)}.blue{color:var(--accent2)}.green{color:var(--accent)}.purple{color:var(--purple)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:20px}
+.panel h2{margin:0 0 14px;font-size:15px;letter-spacing:.02em;color:var(--muted);text-transform:uppercase}
+.split{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;margin-bottom:22px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:70px}
+.bars .bar{flex:1;background:linear-gradient(180deg,var(--accent2),#1b5f87);border-radius:3px 3px 0 0;min-height:3px}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:#cdd9ea;background:rgba(255,255,255,.02)}
+.chip b{color:var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.toolbar input,.toolbar select{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 11px;font:inherit;font-size:13.5px}
+.toolbar input{flex:1;min-width:180px}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:13.5px}
+.btn:hover{border-color:#33486a}
+.btn.primary{background:linear-gradient(135deg,var(--accent),#22c9a0);color:#04121a;border-color:transparent}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.lead-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;padding:15px 16px;cursor:pointer}
+.who{font-weight:700}
+.meta{color:var(--muted);font-size:12.5px}
+.badge{font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;border:1px solid var(--line);text-transform:capitalize;white-space:nowrap}
+.badge.hot{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);color:var(--red)}
+.badge.warm{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.4);color:var(--warn)}
+.badge.cold{background:rgba(147,164,189,.12);color:var(--muted)}
+.badge.booked,.badge.won{background:rgba(46,230,168,.12);border-color:rgba(46,230,168,.4);color:var(--accent)}
+.badge.lost,.badge.unqualified,.badge.spam,.badge.do_not_contact{background:rgba(120,120,120,.14);color:#8b98ad}
+.badge.contacted,.badge.engaged,.badge.qualified,.badge.booking_requested{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.4);color:var(--accent2)}
+.money-est{color:var(--accent2);font-weight:800}
+.money-ver{color:var(--accent);font-weight:800}
+.why{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.why summary{cursor:pointer;font-weight:700;color:var(--accent2)}
+.timeline{margin-top:12px;border-left:2px solid var(--line);padding-left:12px}
+.tl{font-size:12.5px;color:var(--muted);padding:4px 0}
+.tl b{color:var(--text);font-weight:600}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.lead-body{padding:0 16px 16px;border-top:1px solid var(--line);display:none}
+.lead.open .lead-body{display:block}
+.msg{padding:11px 13px;border-radius:10px;background:var(--card2);border:1px solid var(--line);margin-top:12px;font-size:14px}
+.msg .label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px}
+.msg.reply{border-color:rgba(46,230,168,.3)}
+.followups{margin-top:10px}
+.fu{font-size:12.5px;color:var(--muted);padding:4px 0}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.controls select,.controls input{background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 10px;font-size:13px}
+.controls input.job{width:110px}
+.controls textarea{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:9px 11px;font:inherit;font-size:13.5px;min-height:56px;resize:vertical}
+.empty{color:var(--muted);border:1px dashed var(--line);border-radius:14px;padding:34px;text-align:center}
+pre{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:15px;overflow:auto;font-size:12px;color:#9fe8cf}
+.saved{color:var(--accent);font-size:12.5px;margin-left:8px}
+.spark{display:flex;gap:3px;align-items:flex-end;height:26px;margin-top:8px}
+.spark i{width:6px;background:var(--accent);border-radius:2px;display:block}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="brand"><span class="logo">R</span> RingBack <span class="meta" style="margin-left:8px">Lead CRM</span></div>
+  <div class="nav-right">
+    <span><span class="dot" id="smsDot"></span><span id="smsTxt">SMS</span></span>
+    <span><span class="dot" id="aiDot"></span><span id="aiTxt">AI</span></span>
+    <span><span class="dot" id="payDot"></span><span id="payTxt">Payments</span></span>
+    <span><span class="dot" id="dbDot"></span><span id="dbTxt">DB</span></span>
+    <a href="/" class="btn">Back to site</a>
+    <button class="btn" id="logoutBtn">Sign out</button>
+  </div>
+</div></nav>
+
+<main class="wrap">
+  <h1>Your recovery</h1>
+  <p class="sub">This month. Potential is open opportunity. Estimated is booked, not won. Verified is owner-confirmed invoice dollars. Never mixed.</p>
+  <div class="toolbar" style="margin-bottom:18px">
+    <button class="btn" id="killSwitchBtn" style="border-color:var(--red);color:var(--red)">Pause all automation</button>
+    <span class="meta" id="killSwitchMeta">Kill switch is off. Live SMS still requires Twilio.</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="big green" id="sVerified">$0</div><span>VERIFIED revenue</span></div>
+    <div class="stat"><div class="big blue" id="sEstimated">$0</div><span>ESTIMATED pipeline (booked, not won)</span></div>
+    <div class="stat"><div class="big" id="sMissed">0</div><span>Missed calls detected</span></div>
+    <div class="stat"><div class="big purple" id="sBooked">0</div><span>Appointments booked</span></div>
+    <div class="stat"><div class="big" id="sCompleted">0</div><span>Completed jobs (won)</span></div>
+    <div class="stat"><div class="big blue" id="sCustomers">0</div><span>Customers recovered</span></div>
+  </div>
+
+  <div class="panel" id="paidPanel" style="display:none">
+    <h2>RingBack paid for itself</h2>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr);margin:0">
+      <div class="stat"><div class="big" id="paidCost">$199</div><span>Subscription this month</span></div>
+      <div class="stat"><div class="big green" id="paidVerified">$0</div><span>VERIFIED revenue</span></div>
+      <div class="stat"><div class="big green" id="paidNet">$0</div><span>Net VERIFIED revenue</span></div>
+    </div>
+    <p class="meta" id="paidMultiple" style="margin:12px 0 0"></p>
+    <p class="meta">Shown only when a job is marked won with a real invoice amount. Verified revenue divided by subscription is not ROI and not a guarantee.</p>
+  </div>
+  <div class="stats" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat"><div class="big hot" id="sHot">0</div><span>Hot leads</span></div>
+    <div class="stat"><div class="big" id="sTotal">0</div><span>Leads captured</span></div>
+    <div class="stat"><div class="big blue" id="sReplied">0</div><span>Auto-replied</span></div>
+    <div class="stat"><div class="big" id="sFollow">0</div><span>Follow-ups active</span></div>
+    <div class="stat"><div class="big purple" id="sRoi">—</div><span>Illustrative ROI (estimated / subscription)</span></div>
+    <div class="stat"><div class="big" id="sResponseShow">—</div><span>Average first response (live SMS only)</span></div>
+  </div>
+  <div class="panel" id="recoveryHero">
+    <h2>Recently recovered</h2>
+    <p class="meta">Verified = invoice. Estimated = booked, not won. Demo recoveries are labeled and are not verified dollars.</p>
+    <div id="recentRecovered"><div class="empty">No recovered jobs yet.</div></div>
+  </div>
+  <div class="panel" id="reliabilityPanel">
+    <h2>RingBack reliability</h2>
+    <p class="meta" id="reliabilityNote">Live SMS delivery only. Simulated sends are not counted as contacted.</p>
+    <div class="chiprow" id="reliabilityChips"></div>
+    <div id="failedActions" class="meta" style="margin-top:10px"></div>
+  </div>
+  <div class="panel" id="funnelPanel">
+    <h2>Verified-revenue funnel</h2>
+    <p class="meta">Lead to contacted to qualified to offered to selected to booked to completed to verified revenue. Offered and selected are not bookings.</p>
+    <div class="chiprow" id="funnelChips"></div>
+    <p class="meta" id="funnelKinds" style="margin-top:10px">Potential = opportunity. Estimated = booked, not won. Verified = invoice.</p>
+  </div>
+  <p class="sub" id="roiNote">Illustrative ROI = estimated recovered value / subscription. This is a model, not a guaranteed result. Verified revenue / cost is not ROI. Demo recoveries are not verified.</p>
+  <p class="sub" id="sDemo" style="display:none">0</p>
+  <p class="sub" id="sRecovered" style="display:none">0</p>
+  <p class="sub" id="sPipeline" style="display:none">0</p>
+  <p class="sub" id="sRate" style="display:none">0</p>
+  <p class="sub" id="sResponse" style="display:none">0</p>
+  <p class="sub" id="sQualified" style="display:none">0</p>
+
+  <div class="panel" id="alertsPanel">
+    <h2>Owner alerts</h2>
+    <p class="meta">Hot leads and handoffs. RingBack does not invent a price here.</p>
+    <div id="alerts"><div class="empty">No alerts yet.</div></div>
+  </div>
+
+  <div class="panel" id="lostPanel">
+    <h2>Why we lost leads</h2>
+    <div class="chiprow" id="lostReasons"></div>
+  </div>
+
+  <div class="panel" id="coachPanel">
+    <h2>Do this next — customers RingBack can still recover</h2>
+    <p class="meta" id="coachMeta">Ranked recoveries with the potential revenue still on the table. Call and SMS scripts use only facts on the lead. No invented prices.</p>
+    <div id="recoverable" class="stat" style="margin-bottom:14px;display:none"><div class="big blue" id="recoverableValue">$0</div><span>Potential revenue in this queue (estimated, not verified)</span></div>
+    <div id="coach"><div class="empty">No open recoveries yet.</div></div>
+  </div>
+
+  <div class="panel" id="leaksPanel">
+    <h2>Where money is leaking</h2>
+    <p class="meta" id="leaksMeta">Computed from your own leads. No invented benchmarks.</p>
+    <div id="leaks"><div class="empty">Not enough activity yet to spot a leak.</div></div>
+  </div>
+
+  <div class="split">
+    <div class="panel" id="tasksPanel">
+      <h2>Follow-up tasks</h2>
+      <p class="meta" id="tasksMeta">Due follow-ups and booked jobs waiting to be marked won. Send only what is already on the lead.</p>
+      <div class="controls" style="margin-top:0;margin-bottom:10px">
+        <button class="btn" id="runFollowBtn">Run due follow-ups</button>
+        <span class="saved" id="runFollowSaved" style="display:none">Ran</span>
+      </div>
+      <div id="tasks"><div class="empty">No follow-up tasks yet.</div></div>
+    </div>
+    <div class="panel" id="salesPanel">
+      <h2>Sales report</h2>
+      <p class="meta">Scoreboard is paying shops and verified dollars. Estimated is booked, not won.</p>
+      <div class="chiprow" id="salesChips"></div>
+      <div class="meta" id="salesNote" style="margin-top:10px"></div>
+      <div class="controls">
+        <a class="btn" id="salesExport" href="/api/report.txt">Download sales report</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <h2>Pipeline</h2>
+      <div class="chiprow" id="pipeline"></div>
+      <h2 style="margin-top:18px">Last 14 days</h2>
+      <div class="bars" id="bars"></div>
+      <div class="meta" id="barsMeta" style="margin-top:6px"></div>
+    </div>
+    <div class="panel">
+      <h2>Where leads come from</h2>
+      <div class="chiprow" id="channels"></div>
+      <h2 style="margin-top:18px">Test the webhook</h2>
+      <pre id="curl"></pre>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Leads</h2>
+    <div class="toolbar">
+      <input id="q" placeholder="Search name, phone, or message..." />
+      <select id="fStatus"><option value="">All statuses</option><option>new</option><option>contacted</option><option>engaged</option><option>qualified</option><option>booking_requested</option><option>booked</option><option>won</option><option>lost</option><option>unqualified</option><option>spam</option><option>do_not_contact</option></select>
+      <select id="fBucket"><option value="">All heat</option><option>hot</option><option>warm</option><option>cold</option></select>
+      <select id="fChannel"><option value="">All channels</option></select>
+      <button class="btn" id="refresh">Refresh</button>
+      <button class="btn" id="seedBtn">Load demo recoveries (not verified $)</button>
+      <a class="btn" id="exportBtn" href="/api/leads/export">Export CSV</a>
+    </div>
+    <div id="leads"><div class="empty">No leads yet. Fire a test one from the site or the webhook below.</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Setup requests</h2>
+    <div id="setups"><div class="empty">No setup requests yet.</div></div>
+  </div>
+
+  <div class="panel" id="onboardPanel">
+    <h2>Onboarding</h2>
+    <p class="meta" id="onboardMeta">Live SMS stays off until the checklist and Twilio are complete. /pay/success never marks paid.</p>
+    <div class="chiprow" id="onboardChips"></div>
+    <div class="chiprow" id="entitleChips" style="margin-top:10px"></div>
+    <div class="controls">
+      <button class="btn" id="activateLiveBtn">Activate live automation</button>
+      <span class="saved" id="activateSaved" style="display:none">Saved</span>
+      <input id="testPhone" placeholder="Test phone +1..." style="min-width:160px" />
+      <button class="btn" id="testRecoveryBtn">Run test missed call</button>
+      <span class="saved" id="testRecoverySaved" style="display:none">Tested</span>
+    </div>
+    <p class="meta" id="testRecoveryNote">Simulated only. Not a live text and not verified revenue.</p>
+  </div>
+
+  <div class="panel" id="usagePanel">
+    <h2>Plan usage this month</h2>
+    <p class="meta" id="usageMeta">Live SMS over the monthly cap is recorded, not sent. Simulated sends do not count against the cap.</p>
+    <div class="chiprow" id="usageChips"></div>
+  </div>
+
+  <div class="panel" id="quietPanel">
+    <h2>Quiet hours</h2>
+    <p class="meta" id="quietMeta">Holds live automated SMS only. Simulated replies still go out immediately. Emergencies and owner-send bypass.</p>
+    <div class="controls">
+      <label class="meta" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="qhEnabled" checked /> Enabled</label>
+      <input id="qhStart" type="time" value="21:00" />
+      <input id="qhEnd" type="time" value="08:00" />
+      <input id="qhTz" placeholder="Time zone (America/Chicago)" style="min-width:200px" />
+      <button class="btn primary" id="quietSaveBtn">Save quiet hours</button>
+      <span class="saved" id="quietSaved" style="display:none">Saved</span>
+    </div>
+  </div>
+
+  <div class="panel" id="twilioPanel">
+    <h2>Connect Twilio</h2>
+    <p class="meta" id="twilioMeta">SMS stays simulated until TWILIO_* is set. RingBack never claims a real text without LIVE status.</p>
+    <div class="chiprow" id="twilioChips"></div>
+    <pre id="twilioHooks">Set RB_PUBLIC_URL to show absolute webhook URLs.</pre>
+    <div class="meta" id="twilioNext"></div>
+  </div>
+
+  <div class="panel" id="numberPanel">
+    <h2>Connect your shop number</h2>
+    <p class="meta" id="numberMeta">Keep the number customers already dial. Forward only unanswered calls. RingBack cannot flip forwarding at the carrier.</p>
+    <div class="controls">
+      <input id="cShopPhone" placeholder="Shop number (512) 555-0142" style="min-width:180px" />
+      <input id="cOwnerPhone" placeholder="Your cell for pings" style="min-width:180px" />
+      <select id="cCarrier">
+        <option value="verizon">Verizon</option>
+        <option value="att">AT&amp;T</option>
+        <option value="tmobile">T-Mobile</option>
+        <option value="other">Other / landline</option>
+      </select>
+      <label class="meta" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="cForwarded" /> Forwarding is on</label>
+      <button class="btn primary" id="numberSaveBtn">Save connection</button>
+      <span class="saved" id="numberSaved" style="display:none">Saved</span>
+    </div>
+    <div class="chiprow" id="numberChips" style="margin-top:12px"></div>
+    <pre id="numberGuide">Save your numbers to see carrier steps.</pre>
+  </div>
+
+  <div class="panel" id="outreachPanel">
+    <h2>Add one HVAC prospect</h2>
+    <p class="meta">Type a shop you already looked up. RingBack does not scrape Google Maps and does not send email.</p>
+    <div class="controls">
+      <input id="pBusiness" placeholder="Shop name" style="min-width:160px" />
+      <input id="pOwner" placeholder="Owner name" style="min-width:140px" />
+      <input id="pCity" placeholder="City" style="min-width:120px" />
+      <input id="pPhone" placeholder="Phone" style="min-width:140px" />
+      <input id="pEmail" placeholder="owner@shop.com" style="min-width:180px" />
+      <button class="btn primary" id="addProspectBtn">Save + draft</button>
+      <span class="saved" id="pSaved" style="display:none">Saved</span>
+    </div>
+    <div class="meta" id="prospectCount">0 prospects in outreach/prospects.csv</div>
+    <div class="msg" id="draftBox" style="display:none"><span class="label">Email draft (copy and send yourself)</span></div>
+  </div>
+
+  <div class="panel" id="deletePanel">
+    <h2>Delete this account</h2>
+    <p class="meta">Removes customer conversations, messages, and appointments for this business. Demo accounts are protected. Type DELETE to confirm.</p>
+    <div class="controls">
+      <input id="deleteBizId" placeholder="businessId" style="min-width:180px" />
+      <input id="deleteConfirm" placeholder="Type DELETE" style="min-width:140px" />
+      <a class="btn" id="exportAccountBtn" href="/api/account/export">Export account JSON</a>
+      <button class="btn" id="deleteAccountBtn" style="border-color:var(--red);color:var(--red)">Delete account</button>
+      <span class="saved" id="deleteSaved" style="display:none">Deleted</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Refer another shop</h2>
+    <p class="meta">When a job is recovered, send another owner. No fabricated rewards — we just capture the intro.</p>
+    <div class="controls">
+      <input id="refBusiness" placeholder="Shop name" style="min-width:160px" />
+      <input id="refEmail" placeholder="owner@shop.com" style="min-width:180px" />
+      <input id="refName" placeholder="Your name" style="min-width:140px" />
+      <button class="btn primary" id="refBtn">Send referral</button>
+      <span class="saved" id="refSaved" style="display:none">Sent</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Payments received</h2>
+    <div id="payments"><div class="empty">No payments recorded yet.</div></div>
+    <div class="controls">
+      <label class="meta" for="payAmount">Record a payment manually after PayPal / Razorpay / UPI lands.</label>
+    </div>
+    <div class="controls">
+      <input id="payAmount" type="number" min="1" placeholder="199" style="width:110px" />
+      <select id="payPlan"><option value="starter">Starter</option><option value="professional" selected>Professional</option><option value="business">Business</option></select>
+      <input id="payRef" placeholder="reference / txn id" style="min-width:170px" />
+      <button class="btn primary" id="payBtn">Record payment</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = (n) => "$" + Math.round(n || 0).toLocaleString("en-US");
+
+let LEADS = [];
+let STATS = null;
+let CHANNEL_FILTER_BUILT = false;
+
+function leadMatches(l) {
+  const q = $("q").value.trim().toLowerCase();
+  if (q) {
+    const hay = [l.name, l.phone, l.message, l.reply, (l.score?.bucket || "")].join(" ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if ($("fStatus").value && (l.status || "new") !== $("fStatus").value) return false;
+  if ($("fBucket").value && (l.score?.bucket || "") !== $("fBucket").value) return false;
+  if ($("fChannel").value && (l.source || "") !== $("fChannel").value) return false;
+  return true;
+}
+
+function leadCard(l) {
+  const status = l.status || "new";
+  const bucket = l.score?.bucket || "cold";
+  const fu = (l.followUp || []).map((f) => `<div class="fu">+${f.delayHours}h &middot; ${esc(f.text)}</div>`).join("");
+  const qual = l.qualification || {};
+  const qualLine = [qual.service, qual.area || qual.address, qual.timing].filter(Boolean).join(" · ");
+  return `
+  <div class="lead" data-id="${esc(l.id)}">
+    <div class="lead-top" data-toggle>
+      <div>
+        <div class="who">${esc(l.name)} ${l.phone ? '<span class="meta">&middot; ' + esc(l.phone) + "</span>" : ""}</div>
+         <div class="meta">${esc(l.source)} &middot; ${esc(l.intent || "general")} &middot; ${esc(Number(l.confirmedRevenue) > 0 && l.status === "won" ? "verified" : l.status === "won" ? "completed, not verified" : l.status === "booked" ? "estimated" : "pipeline")} &middot; ${new Date(l.createdAt).toLocaleString()}${qualLine ? " &middot; " + esc(qualLine) : ""}</div>
+        <div class="tags">
+          <span class="tag">${esc(l.channelLabel || l.channel || "")}</span>
+          ${l.urgent ? '<span class="tag" style="color:var(--red);border-color:rgba(248,113,113,.4)">urgent</span>' : ""}
+          ${l.severity === "emergency" ? '<span class="tag" style="color:var(--red);border-color:rgba(248,113,113,.4)">emergency detected</span>' : ""}
+          <span class="tag">${esc(l.engine || "receptionist-v2")}</span>
+          ${l.demo === true || String(l.businessId || "").startsWith("demo-") ? '<span class="tag">demo — not verified $</span>' : ""}
+          ${l.optedOut ? '<span class="tag">opted out</span>' : ""}
+          ${l.failureState ? '<span class="tag" style="color:var(--warn);border-color:rgba(251,191,36,.4)">' + esc(String(l.failureState).replace(/_/g, " ")) + "</span>" : ""}
+          ${l.deliveryStatus === "failed" || l.deliveryStatus === "undelivered" ? '<span class="tag" style="color:var(--red);border-color:rgba(248,113,113,.4)">SMS ' + esc(l.deliveryStatus) + "</span>" : ""}
+          ${l.deliveryStatus === "delivered" ? '<span class="tag" style="color:var(--accent);border-color:rgba(46,230,168,.4)">SMS delivered</span>' : ""}
+          ${l.sms && l.sms.status === "simulated" ? '<span class="tag">SMS simulated</span>' : ""}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="badge ${esc(bucket)}">${esc(bucket)} ${l.score ? l.score.score : ""}${l.score?.label ? " — " + esc(l.score.label) : ""}</span>
+        <span class="badge ${esc(status)}">${esc(status)}</span>
+      </div>
+    </div>
+    <div class="lead-body">
+      <div class="msg"><span class="label">Customer said</span>${esc(l.message)}</div>
+      <div class="msg reply"><span class="label">RingBack replied</span>${esc(l.reply)}</div>
+      <div class="msg" data-intel style="display:none"></div>
+      <div class="msg reply" data-coach style="display:none"></div>
+      ${fu ? '<div class="followups"><span class="label" style="color:var(--muted);font-size:11px;text-transform:uppercase">Follow-up sequence</span>' + fu + "</div>" : ""}
+      <div class="timeline" data-timeline>Loading timeline...</div>
+      <div class="controls">
+        <label class="meta">Status
+          <select data-field="status">
+            ${["new","contacted","engaged","qualified","booking_requested","booked","won","lost","unqualified","spam","do_not_contact"].map((s) => `<option value="${s}" ${s === status ? "selected" : ""}>${s}</option>`).join("")}
+          </select>
+        </label>
+        <label class="meta">Job value $
+          <input class="job" data-field="jobValue" type="number" min="0" placeholder="invoice $" value="${l.jobValue == null ? "" : l.jobValue}" />
+        </label>
+        <label class="meta">Invoice ref
+          <input data-field="invoiceRef" placeholder="INV-1042" value="${esc(l.invoiceRef || "")}" style="min-width:110px" />
+        </label>
+        <label class="meta">Lost reason
+          <select data-field="lostReason">
+            <option value="">—</option>
+            ${[["no_response","Customer never responded"],["price","Price too high"],["outside_area","Outside service area"],["no_availability","No appointment available"],["competitor","Competitor won"],["cancelled","Customer cancelled"],["duplicate","Duplicate/spam"],["unknown","Unknown"]].map(([id, label]) => `<option value="${id}" ${l.lostReason === id ? "selected" : ""}>${label}</option>`).join("")}
+          </select>
+        </label>
+        <button class="btn primary" data-save>Save<span class="saved" style="display:none">Saved</span></button>
+        <button class="btn" data-takeover>Take over conversation</button>
+        <button class="btn" data-resume style="display:none">Return to AI</button>
+        <button class="btn" data-won>Mark won</button>
+      </div>
+      <div class="controls" data-owner-send style="display:none">
+        <input data-field="ownerText" placeholder="Type a message to send as the owner..." style="flex:1;min-width:220px" />
+        <button class="btn primary" data-owner-msg>Send as owner</button>
+      </div>
+      <div class="controls" style="display:block">
+        <label class="meta">Notes</label>
+        <textarea data-field="notes" placeholder="Called, booked Tuesday 2pm...">${esc(l.notes || "")}</textarea>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLeads() {
+  const list = LEADS.filter(leadMatches);
+  $("leads").innerHTML = list.length
+    ? list.map(leadCard).join("")
+    : '<div class="empty">No leads match these filters.</div>';
+}
+
+function coachCard(item) {
+  const pri = item.priority || "soon";
+  const badgeClass = pri === "now" ? "hot" : pri === "today" ? "warm" : "cold";
+  const phone = item.phone ? `<span class="meta">&middot; ${esc(item.phone)}</span>` : "";
+  return `
+  <div class="lead" data-coach-lead="${esc(item.leadId || "")}">
+    <div style="padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <div class="who">${esc(item.name || "Unknown")}${phone}${item.estimatedValue ? " &middot; " + money(item.estimatedValue) : ""}</div>
+          <div class="meta">${esc(item.kind || "text")} &middot; ${esc(item.status || "")} &middot; ${esc(item.heat || "")}${item.urgent ? " &middot; urgent" : ""}</div>
+        </div>
+        <span class="badge ${badgeClass}">${esc(pri)}</span>
+      </div>
+      <div class="meta" style="margin-top:8px">${esc(item.reason || item.nextAction || "")}</div>
+      <div class="msg reply" style="margin-top:10px"><span class="label">${item.kind === "call" ? "Call script" : "SMS script"}</span>${esc(item.kind === "call" ? (item.script?.call || "") : (item.script?.sms || ""))}</div>
+      ${item.kind === "call" && item.script?.sms ? `<div class="msg" style="margin-top:8px"><span class="label">SMS backup</span>${esc(item.script.sms)}</div>` : ""}
+      <div class="controls"><button class="btn primary" data-coach="${esc(item.leadId || "")}">${item.status === "booking_requested" || item.status === "booked" ? "Recover" : "Follow up"}</button></div>
+    </div>
+  </div>`;
+}
+
+function taskCard(t) {
+  const badge = t.due === "now" ? "hot" : t.due === "today" ? "warm" : "cold";
+  return `
+  <div class="lead">
+    <div style="padding:14px 16px">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div class="who">${esc(t.name || "Unknown")} ${t.phone ? '<span class="meta">&middot; ' + esc(t.phone) + "</span>" : ""}</div>
+        <span class="badge ${badge}">${esc(t.kind || "")} ${esc(t.due || "")}</span>
+      </div>
+      <div class="meta" style="margin-top:6px">${esc(t.title || "")}</div>
+      ${t.text ? `<div class="msg" style="margin-top:8px"><span class="label">Send</span>${esc(t.text)}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+async function loadTasks() {
+  const box = $("tasks");
+  if (!box) return;
+  try {
+    const d = await (await fetch("/api/tasks")).json();
+    const tasks = d.tasks || [];
+    if ($("tasksMeta")) {
+      $("tasksMeta").textContent = tasks.length
+        ? tasks.length + " owner tasks from real leads. No invented prospects."
+        : "No follow-up tasks yet. Capture a missed call or book a job.";
+    }
+    box.innerHTML = tasks.length ? tasks.map(taskCard).join("") : '<div class="empty">No follow-up tasks yet.</div>';
+  } catch {
+    box.innerHTML = '<div class="empty">Could not load tasks.</div>';
+  }
+}
+
+async function loadSales() {
+  if (!$("salesChips")) return;
+  try {
+    const d = await (await fetch("/api/report")).json();
+    const s = d.sales?.scoreboard || {};
+    const p = d.sales?.pipeline || {};
+    $("salesChips").innerHTML = [
+      `<span class="chip">paying shops <b>${s.payingShops || 0}</b></span>`,
+      `<span class="chip">verified <b>${money(s.verifiedRevenue)}</b></span>`,
+      `<span class="chip">estimated <b>${money(s.estimatedRevenue)}</b></span>`,
+      `<span class="chip">won <b>${p.won || 0}</b></span>`,
+      `<span class="chip">setups <b>${p.setups || 0}</b></span>`,
+    ].join("");
+    const blockers = (d.sales?.blockers || []).join(" ");
+    $("salesNote").textContent = blockers || (s.note || "");
+  } catch {
+    $("salesNote").textContent = "Could not load sales report.";
+  }
+}
+
+async function loadTwilio() {
+  if (!$("twilioMeta")) return;
+  try {
+    const d = await (await fetch("/api/connect/twilio")).json();
+    const live = d.ready === true && d.mode === "live";
+    $("twilioMeta").textContent = live
+      ? "Twilio LIVE. From number masked. Opening a webhook is not a sent text."
+      : "SMS is simulated. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER, then restart.";
+    if ($("smsDot")) $("smsDot").className = "dot " + (live ? "on" : "off");
+    if ($("smsTxt")) $("smsTxt").textContent = live ? "SMS LIVE" : "SMS simulated";
+    $("twilioChips").innerHTML = [
+      `<span class="chip">mode <b>${esc(d.mode || "simulated")}</b></span>`,
+      d.fromNumber ? `<span class="chip">from <b>${esc(d.fromNumber)}</b></span>` : "",
+    ].filter(Boolean).join("");
+    const w = d.webhooks || {};
+    $("twilioHooks").textContent = [
+      "SMS webhook: " + (w.smsUrl || w.smsPath || "/api/twilio/sms"),
+      "Missed-call webhook: " + (w.voiceUrl || w.voicePath || "/api/twilio/voice"),
+      w.note || "",
+    ].filter(Boolean).join("\n");
+    $("twilioNext").textContent = Array.isArray(d.next) ? d.next.join(" ") : "";
+  } catch {
+    $("twilioMeta").textContent = "Could not load Twilio status.";
+  }
+}
+
+async function loadNumber() {
+  if (!$("numberMeta")) return;
+  try {
+    const d = await (await fetch("/api/connect/number")).json();
+    const s = d.saved || {};
+    if ($("cShopPhone")) $("cShopPhone").value = s.shopPhone || "";
+    if ($("cOwnerPhone")) $("cOwnerPhone").value = s.ownerPhone || "";
+    if ($("cCarrier")) $("cCarrier").value = s.carrier || "other";
+    if ($("cForwarded")) $("cForwarded").checked = s.forwarded === true;
+    const smsLive = d.sms?.ready === true && d.sms?.mode === "live";
+    $("numberMeta").textContent = d.connected
+      ? "Connected. Unanswered calls should reach RingBack. Miss one call to test."
+      : "Not finished. Missing: " + (d.missing || []).join(", ") + ".";
+    $("numberChips").innerHTML = [
+      `<span class="chip">shop <b>${esc(s.shopPhone || "not set")}</b></span>`,
+      `<span class="chip">owner ping <b>${esc(s.ownerPhone || "not set")}</b></span>`,
+      `<span class="chip">forwarding <b>${s.forwarded ? "on" : "off"}</b></span>`,
+      `<span class="chip">sms <b>${smsLive ? "live" : "simulated"}</b></span>`,
+    ].join("");
+    const g = d.guide || {};
+    $("numberGuide").textContent = (g.steps || []).join("\n") + (g.note ? "\n\n" + g.note : "");
+  } catch {
+    $("numberMeta").textContent = "Could not load connection status.";
+  }
+}
+
+async function loadOutreach() {
+  if (!$("prospectCount")) return;
+  try {
+    const d = await (await fetch("/api/outreach")).json();
+    $("prospectCount").textContent = (d.count || 0) + " prospects in outreach/prospects.csv. Does not send email.";
+  } catch {
+    $("prospectCount").textContent = "Could not load prospects.";
+  }
+}
+
+async function loadAlerts() {
+  const box = $("alerts");
+  if (!box) return;
+  try {
+    const d = await (await fetch("/api/notifications")).json();
+    const items = d.notifications || [];
+    box.innerHTML = items.length
+      ? items.slice(0, 8).map((n) => `
+        <div class="lead"><div style="padding:14px 16px">
+          <div class="who">${esc(n.title || "Alert")}</div>
+          <div class="meta">${esc(n.kind || "")} ${n.leadId ? "&middot; " + esc(n.leadId) : ""}</div>
+          <div class="meta" style="margin-top:6px">${esc(n.body || "")}</div>
+        </div></div>`).join("")
+      : '<div class="empty">No alerts yet.</div>';
+  } catch {
+    box.innerHTML = '<div class="empty">Could not load alerts.</div>';
+  }
+}
+
+async function loadCoach() {
+  const box = $("coach");
+  if (!box) return;
+  try {
+    const d = await (await fetch("/api/coach")).json();
+    const items = d.items || [];
+    if ($("coachMeta")) {
+      const mode = d.polished ? "AI-polished scripts" : "Deterministic scripts (no LLM key needed)";
+      $("coachMeta").textContent = items.length
+        ? items.length + " ranked recoveries. " + mode + ". No invented prices."
+        : "No open recoveries yet. Capture a missed call and this queue fills in.";
+    }
+    box.innerHTML = items.length
+      ? items.map(coachCard).join("")
+      : '<div class="empty">No open recoveries yet.</div>';
+    if ($("recoverable") && $("recoverableValue")) {
+      const potential = items.reduce((sum, it) => sum + (Number(it.estimatedValue) || 0), 0);
+      if (potential > 0) {
+        $("recoverable").style.display = "block";
+        $("recoverableValue").textContent = money(potential);
+      } else {
+        $("recoverable").style.display = "none";
+      }
+    }
+  } catch {
+    box.innerHTML = '<div class="empty">Could not load coach.</div>';
+  }
+}
+
+function renderLeaks() {
+  const box = $("leaks");
+  if (!box || !STATS) return;
+  const leaks = [];
+  const missed = Number(STATS.missedCallsHandled || STATS.byChannel?.missed_call || 0);
+  const afterHours = (LEADS || []).filter((l) => l.afterHours === true).length;
+  if (missed >= 5 && afterHours > 0) {
+    const pct = Math.round((afterHours / missed) * 100);
+    if (pct >= 25) {
+      leaks.push({
+        title: "After-hours calls",
+        detail: pct + "% of your missed calls happened after hours.",
+        rec: "Turn on unanswered-call forwarding so night calls still get a text back.",
+      });
+    }
+  }
+  const slow = Number(STATS.avgResponseSeconds || 0);
+  if (slow >= 300) {
+    leaks.push({
+      title: "Slow response",
+      detail: "Your average first reply is " + Math.round(slow / 60) + " min. Callers who wait book less often.",
+      rec: "Shorten the first text so it goes out in seconds, not minutes.",
+    });
+  }
+  const bookedOpen = Number(STATS.byStatus?.booked || 0);
+  if (bookedOpen > 0) {
+    leaks.push({
+      title: "Unfollowed jobs",
+      detail: bookedOpen + " booked job" + (bookedOpen > 1 ? "s are" : " is") + " not marked won and not confirmed.",
+      rec: "Confirm the visit, then mark won with the real invoice amount.",
+    });
+  }
+  if (!leaks.length) {
+    box.innerHTML = '<div class="empty">Not enough activity yet to spot a leak.</div>';
+    if ($("leaksMeta")) $("leaksMeta").textContent = "Computed from your own leads. No invented benchmarks.";
+    return;
+  }
+  box.innerHTML = leaks.map((l, i) =>
+    '<div class="lead"><div style="padding:14px 16px">' +
+    '<div class="who">' + (i + 1) + '. ' + esc(l.title) + '</div>' +
+    '<div class="meta" style="margin-top:6px">' + esc(l.detail) + '</div>' +
+    '<div class="meta" style="margin-top:6px"><b>Do this:</b> ' + esc(l.rec) + '</div>' +
+    '</div></div>'
+  ).join("");
+  if ($("leaksMeta")) $("leaksMeta").textContent = "RingBack found " + leaks.length + " revenue leak" + (leaks.length > 1 ? "s" : "") + " in your leads.";
+}
+
+function renderChannels(channels) {
+  const entries = Object.entries(channels || {}).sort((a, b) => b[1] - a[1]);
+  $("channels").innerHTML = entries.length
+    ? entries.map(([k, v]) => `<span class="chip">${esc(k)} <b>${v}</b></span>`).join("")
+    : '<span class="meta">No data yet</span>';
+  const sel = $("fChannel");
+  if (!CHANNEL_FILTER_BUILT) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All channels</option>' + entries.map(([k]) => `<option value="${esc(k)}">${esc(k)}</option>`).join("");
+    sel.value = cur;
+    CHANNEL_FILTER_BUILT = true;
+  }
+}
+
+async function load() {
+  const r = await fetch("/api/leads");
+  if (r.status === 401) {
+    location.href = "/login?next=%2Fdashboard";
+    return;
+  }
+  const d = await r.json();
+  LEADS = d.leads || [];
+  const st = d.stats || { total: 0, replied: 0, byBucket: {}, byStatus: {}, byChannel: {}, byDay: {}, recovered: 0 };
+  STATS = st;
+
+  $("sTotal").textContent = st.total;
+  $("sReplied").textContent = st.replied;
+  $("sHot").textContent = st.byBucket?.hot || 0;
+  $("sBooked").textContent = (st.appointmentsBooked ?? ((st.byStatus?.booked || 0) + (st.byStatus?.won || 0)));
+  $("sRecovered").textContent = money(st.recovered);
+  $("sCustomers").textContent = st.customersRecovered || 0;
+  $("sMissed").textContent = st.missedCallsHandled || st.byChannel?.missed_call || 0;
+  $("sPipeline").textContent = money(st.pipelineValue);
+  $("sRate").textContent = (st.bookedRate || 0) + "%";
+  $("sResponse").textContent = st.avgResponseSeconds == null ? "—" : st.avgResponseSeconds + "s";
+  if ($("sResponseShow")) $("sResponseShow").textContent = st.avgResponseSeconds == null ? "—" : st.avgResponseSeconds + "s";
+  if ($("sEstimated")) $("sEstimated").textContent = money(st.estimatedRevenue);
+  if ($("sVerified")) $("sVerified").textContent = money(st.verifiedRevenue);
+  if ($("paidPanel")) {
+    const cost = 199;
+    const verified = Number(st.verifiedRevenue || 0);
+    if (verified > 0) {
+      $("paidPanel").style.display = "block";
+      $("paidCost").textContent = money(cost);
+      $("paidVerified").textContent = money(verified);
+      $("paidNet").textContent = (verified - cost >= 0 ? "" : "-") + money(Math.abs(verified - cost));
+      $("paidMultiple").innerHTML = "<b>" + (verified / cost).toFixed(1) + "x verified revenue / subscription</b> — " + money(verified) + " verified recovered divided by the " + money(cost) + " subscription.";
+    } else {
+      $("paidPanel").style.display = "none";
+    }
+  }
+  if ($("sDemo")) {
+    $("sDemo").style.display = st.demoRevenue ? "block" : "none";
+    $("sDemo").textContent = "Demo recoveries (not verified): " + money(st.demoRevenue);
+  }
+  if ($("sQualified")) $("sQualified").textContent = st.qualifiedLeads || 0;
+  if ($("sFollow")) $("sFollow").textContent = st.followUpsActive || 0;
+  if ($("sRoi")) {
+    const cost = Number(st.planCost || 199);
+    const estimated = Number(st.estimatedRevenue || 0);
+    $("sRoi").textContent = cost > 0 ? (estimated / cost).toFixed(1) + "x" : "—";
+  }
+  if ($("sCompleted")) $("sCompleted").textContent = st.jobsCompleted || st.byStatus?.won || 0;
+  if ($("funnelChips")) {
+    const f = st.funnel || {};
+    $("funnelChips").innerHTML = [
+      ["Potential", f.potential || f.lead || st.total || 0],
+      ["Recovered lead", f.recovered || f.contacted || 0],
+      ["Offered", f.appointmentOffered || 0],
+      ["Confirmed", f.booked || 0],
+      ["Completed", f.completed || 0],
+      ["Verified $", money(f.verifiedRevenue || st.verifiedRevenue || 0)],
+    ].map(([k, v]) => `<span class="chip">${esc(k)} <b>${v}</b></span>`).join("");
+  }
+  if ($("funnelKinds")) {
+    $("funnelKinds").textContent =
+      "Potential: " + money(st.potentialRevenue || st.pipelineValue) +
+      " · Estimated: " + money(st.estimatedRevenue) +
+      " · Verified: " + money(st.verifiedRevenue) +
+      ". Offered slots are not bookings.";
+  }
+  if ($("recentRecovered")) {
+    const rec = st.recentlyRecovered || [];
+    $("recentRecovered").innerHTML = rec.length
+      ? rec.map((r) => `<div class="lead" style="padding:12px 14px"><div class="who">${esc(r.name || "Unknown")} ${r.demo ? '<span class="tag">demo</span>' : ""}</div><div class="meta">${esc(r.service || r.status)} · ${esc(r.status)} · ${esc(r.kind)} ${r.amount ? money(r.amount) : ""}</div></div>`).join("")
+      : '<div class="empty">No recovered jobs yet.</div>';
+  }
+  if ($("reliabilityChips")) {
+    const rel = st.reliability || {};
+    $("reliabilityChips").innerHTML = [
+      `<span class="chip">live sent <b>${rel.sent || 0}</b></span>`,
+      `<span class="chip">failed <b>${rel.failed || 0}</b></span>`,
+      `<span class="chip">simulated <b>${rel.simulated || 0}</b></span>`,
+      rel.smsDeliveryPercent == null ? `<span class="chip">delivery <b>—</b></span>` : `<span class="chip">live delivery <b>${rel.smsDeliveryPercent}%</b></span>`,
+    ].join("");
+    if ($("reliabilityNote")) $("reliabilityNote").textContent = rel.note || "Live SMS delivery only. Simulated sends are not counted as contacted.";
+    const fails = rel.failedActions || [];
+    if ($("failedActions")) $("failedActions").textContent = fails.length ? fails.map((f) => (f.name || f.leadId) + ": " + String(f.reason || "").replace(/_/g, " ")).join(" · ") : "No failed live actions.";
+  }
+  if ($("lostReasons")) {
+    const lost = Object.entries(st.byLostReason || {}).filter(([, n]) => n);
+    $("lostReasons").innerHTML = lost.length
+      ? lost.map(([k, n]) => `<span class="chip">${esc(k.replace(/_/g, " "))} <b>${n}</b></span>`).join("")
+      : '<span class="meta">No lost leads with a reason yet.</span>';
+  }
+
+  $("pipeline").innerHTML = ["new", "contacted", "engaged", "qualified", "booking_requested", "booked", "won", "lost"]
+    .map((s) => `<span class="chip">${s} <b>${st.byStatus?.[s] || 0}</b></span>`).join("") +
+    `<span class="chip">hot <b>${st.byBucket?.hot || 0}</b></span>` +
+    `<span class="chip">warm <b>${st.byBucket?.warm || 0}</b></span>` +
+    `<span class="chip">cold <b>${st.byBucket?.cold || 0}</b></span>`;
+
+  renderChannels(st.byChannel);
+  renderLeaks();
+
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - i);
+    const key = dt.toISOString().slice(0, 10);
+    days.push({ key, n: st.byDay?.[key] || 0 });
+  }
+  const max = Math.max(1, ...days.map((d) => d.n));
+  $("bars").innerHTML = days.map((d) => `<div class="bar" style="height:${Math.max(3, (d.n / max) * 70)}px" title="${d.key}: ${d.n}"></div>`).join("");
+  $("barsMeta").textContent = days.reduce((a, d) => a + d.n, 0) + " leads in 14 days";
+
+  renderLeads();
+  await loadCoach();
+  await loadTasks();
+  await loadSales();
+  await loadAlerts();
+  await loadTwilio();
+  await loadNumber();
+  await loadKillSwitch();
+  await loadOnboarding();
+  await loadQuietHours();
+  await loadOutreach();
+  if ($("exportAccountBtn") && $("deleteBizId")) {
+    const biz = $("deleteBizId").value.trim();
+    $("exportAccountBtn").href = "/api/account/export" + (biz ? "?businessId=" + encodeURIComponent(biz) : "");
+  }
+
+  const sr = await fetch("/api/setups");
+  if (sr.status !== 401) {
+    const sd = await sr.json();
+    const setups = sd.setups || [];
+    const payments = sd.payments || [];
+    $("payments").innerHTML = payments.length ? payments.map((p) => `
+      <div class="lead"><div style="padding:14px 16px">
+        <div class="who">${money(p.amount)} <span class="meta">${esc(p.currency || "")} &middot; ${esc(p.plan || "")}</span></div>
+        <div class="meta">${esc(p.provider || "manual")} ${p.reference ? "&middot; ref " + esc(p.reference) : ""} ${p.setupId ? "&middot; " + esc(p.setupId) : ""}</div>
+        <div class="meta">${new Date(p.createdAt).toLocaleString()}${p.note ? " &middot; " + esc(p.note) : ""}</div>
+      </div></div>`).join("") : '<div class="empty">No payments recorded yet.</div>';
+
+    $("setups").innerHTML = setups.length ? setups.map((s) => `
+      <div class="lead" data-setup="${esc(s.id)}"><div style="padding:14px 16px">
+        <div class="who">${esc(s.business)} ${s.status ? '<span class="badge ' + esc(s.status === "paid" ? "booked" : "contacted") + '">' + esc(s.status) + "</span>" : ""}</div>
+        <div class="meta">${esc(s.name || "-")} &middot; ${esc(s.email)} &middot; ${esc(s.trade || "")} &middot; ${esc(s.plan || "")}</div>
+        <div class="meta">${esc((s.channels || []).join(", ") || "no channels selected")} &middot; ${new Date(s.createdAt).toLocaleString()}</div>
+        <div class="controls">
+          <label class="meta">Status
+            <select data-setup-status>
+              ${["new","contacted","paid","lost"].map((x) => `<option value="${x}" ${x === (s.status || "new") ? "selected" : ""}>${x}</option>`).join("")}
+            </select>
+          </label>
+          <button class="btn primary" data-setup-save>Save</button>
+        </div>
+      </div></div>`).join("") : '<div class="empty">No setup requests yet.</div>';
+  }
+
+  const h = await fetch("/health").then((x) => x.json()).catch(() => null);
+  if (h) {
+    $("smsDot").className = "dot " + (h.sms ? "on" : "off");
+    $("smsTxt").textContent = h.sms ? "SMS live" : "SMS simulated";
+    $("aiDot").className = "dot " + (h.ai?.ready ? "on" : "off");
+    $("aiTxt").textContent = h.ai?.ready ? "AI live (" + h.ai.model + ")" : "AI off (built-in engine)";
+    $("payDot").className = "dot " + (h.billing?.ready ? "on" : "off");
+    $("payTxt").textContent = h.billing?.ready ? "Payments ready" : "No payment link";
+    $("dbDot").className = "dot " + (h.storage?.engine === "sqlite" ? "on" : "off");
+    $("dbTxt").textContent = "DB " + (h.storage?.engine || "?");
+  }
+
+  const origin = location.origin;
+  $("curl").textContent =
+    "# Missed call:\ncurl -X POST " + origin + "/api/missed-call \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"from\":\"+15125550198\",\"name\":\"Alex\"}'\n\n" +
+    "# WhatsApp:\ncurl -X POST " + origin + "/api/whatsapp \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"name\":\"Alex\",\"phone\":\"+15125550198\",\"message\":\"Need a quote\"}'\n\n" +
+    "# Any channel:\ncurl -X POST " + origin + "/api/message \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"name\":\"Alex\",\"message\":\"How much?\",\"channel\":\"facebook\"}'\n\n" +
+    "# Update a lead:\ncurl -X PATCH " + origin + "/api/leads/LEAD_ID \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"status\":\"booked\",\"jobValue\":680}'";
+}
+
+$("leads").addEventListener("click", async (e) => {
+  const card = e.target.closest(".lead");
+  if (!card) return;
+  const id = card.dataset.id;
+
+  if (e.target.closest("[data-toggle]")) {
+    card.classList.toggle("open");
+    if (card.classList.contains("open")) loadTimeline(id, card);
+    return;
+  }
+  if (e.target.closest("[data-takeover]")) {
+    await fetch("/api/leads/" + id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "take_over" }) });
+    await load();
+    const reopened = document.querySelector('.lead[data-id="' + id + '"]');
+    if (reopened) { reopened.classList.add("open"); loadTimeline(id, reopened); }
+    return;
+  }
+  if (e.target.closest("[data-resume]")) {
+    await fetch("/api/leads/" + id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "return_to_ai" }) });
+    await load();
+    const reopened = document.querySelector('.lead[data-id="' + id + '"]');
+    if (reopened) { reopened.classList.add("open"); loadTimeline(id, reopened); }
+    return;
+  }
+  if (e.target.closest("[data-owner-msg]")) {
+    const text = card.querySelector('[data-field="ownerText"]')?.value || "";
+    if (!text.trim()) return;
+    await fetch("/api/leads/" + id + "/reply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ownerSend: true, text }) });
+    await load();
+    const reopened = document.querySelector('.lead[data-id="' + id + '"]');
+    if (reopened) { reopened.classList.add("open"); loadTimeline(id, reopened); }
+    return;
+  }
+  if (e.target.closest("[data-won]")) {
+    const jobRaw = card.querySelector('[data-field="jobValue"]').value;
+    const amount = Number(jobRaw);
+    if (jobRaw === "" || !Number.isFinite(amount) || amount <= 0) {
+      card.querySelector('[data-field="jobValue"]').focus();
+      card.querySelector('[data-field="jobValue"]').placeholder = "Type the real invoice $";
+      return;
+    }
+    const invoiceRef = card.querySelector('[data-field="invoiceRef"]')?.value.trim() || "";
+    const r = await fetch("/api/leads/" + id + "/revenue", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount, status: "won", invoiceRef }) });
+    if (!r.ok) return;
+    await load();
+    const reopened = document.querySelector('.lead[data-id="' + id + '"]');
+    if (reopened) { reopened.classList.add("open"); loadTimeline(id, reopened); }
+    return;
+  }
+  if (e.target.closest("[data-save]")) {
+    const notes = card.querySelector('[data-field="notes"]').value;
+    const status = card.querySelector('[data-field="status"]').value;
+    const jobRaw = card.querySelector('[data-field="jobValue"]').value;
+    const lostReason = card.querySelector('[data-field="lostReason"]')?.value || "";
+    const invoiceRef = card.querySelector('[data-field="invoiceRef"]')?.value.trim() || "";
+    const payload = { notes };
+    if (status !== "won") payload.status = status;
+    if (jobRaw !== "") payload.jobValue = Number(jobRaw);
+    if (invoiceRef) payload.invoiceRef = invoiceRef;
+    if (status === "lost" || status === "unqualified" || status === "spam") payload.lostReason = lostReason || "unknown";
+    const r = await fetch("/api/leads/" + id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (r.ok) {
+      const flag = card.querySelector(".saved");
+      flag.style.display = "inline";
+      setTimeout(() => (flag.style.display = "none"), 1500);
+      await load();
+      const reopened = document.querySelector('.lead[data-id="' + id + '"]');
+      if (reopened) reopened.classList.add("open");
+    }
+  }
+});
+
+async function loadTimeline(id, card) {
+  const box = card.querySelector("[data-timeline]");
+  if (!box) return;
+  try {
+    const d = await (await fetch("/api/leads/" + id)).json();
+    const intel = d.intelligence || {};
+    const intelBox = card.querySelector("[data-intel]");
+    if (intelBox) {
+      const paused = intel.paused ? `<div class="meta" style="margin-top:6px">AI paused: ${esc(intel.pausedReason || "Owner took over the conversation.")}</div>` : "";
+      intelBox.style.display = "block";
+      const reasons = Array.isArray(intel.heatReasons) && intel.heatReasons.length ? `<div class="why"><b>${esc((intel.heat || "").toUpperCase())}</b> because: ${esc(intel.heatReasons.join("; "))}.</div>` : "";
+      const loc = intel.location ? ` Location: ${esc(intel.location)}.` : "";
+      const vx = intel.valueExplanation || {};
+      const val = intel.estimatedValue
+        ? `<details class="why"><summary>Why this number?</summary>ESTIMATED lead value $${esc(intel.estimatedValue)}. Service: ${esc(vx.service || intel.service || "unknown")}. Average job value $${esc(vx.jobValue || intel.estimatedValue)}. ${vx.closeProbability == null ? "Configured job value, no close rate applied." : "Close probability " + esc(vx.closeProbability) + "."} Estimated — not verified revenue.</details>`
+        : "";
+      const em = intel.emergencyState && intel.emergencyState.detected
+        ? `<div class="meta" style="margin-top:6px">Emergency detected. Owner notified: ${intel.emergencyState.ownerNotified ? "yes" : "no"}. Dispatcher confirmed: no. Technician dispatched: no.</div>`
+        : "";
+      intelBox.innerHTML = `<span class="label">Lead intelligence</span>${esc(intel.nextAction || "Review this lead.")}${reasons}${loc}${val}${em}${paused}`;
+    }
+    const coachBox = card.querySelector("[data-coach]");
+    const coach = d.coach || {};
+    if (coachBox && coach.script) {
+      coachBox.style.display = "block";
+      const script = coach.kind === "call" ? coach.script.call : coach.script.sms;
+      const label = coach.kind === "call" ? "Call this next" : "Send this next";
+      coachBox.innerHTML = `<span class="label">${esc(label)} (${esc(coach.priority || "")})</span>${esc(script || coach.reason || "")}`;
+    }
+    const take = card.querySelector("[data-takeover]");
+    const resume = card.querySelector("[data-resume]");
+    if (take) take.style.display = intel.paused ? "none" : "";
+    if (resume) resume.style.display = intel.paused ? "" : "none";
+    const ownerSend = card.querySelector("[data-owner-send]");
+    if (ownerSend) ownerSend.style.display = intel.paused ? "flex" : "none";
+    const items = d.timeline || [];
+    box.innerHTML = items.length
+      ? items.slice(-20).map((t) => {
+          const stamp = esc(t.at || "").replace("T", " ").slice(0, 16);
+          if (t.kind === "message") return `<div class="tl">${stamp} <b>${esc(t.direction === "out" ? "RingBack" : "Customer")}</b> ${esc(t.text)} <span class="meta">${esc(t.status || t.channel || "")}</span></div>`;
+          return `<div class="tl">${stamp} <b>${esc(t.type)}</b> ${esc(t.summary || "")} <span class="meta">${esc(t.actor || "system")}</span></div>`;
+        }).join("")
+      : '<div class="tl">No timeline yet.</div>';
+  } catch {
+    box.textContent = "Could not load timeline.";
+  }
+}
+
+["q", "fStatus", "fBucket", "fChannel"].forEach((id) => $(id).addEventListener("input", renderLeads));
+$("refresh").addEventListener("click", load);
+$("seedBtn").addEventListener("click", async () => {
+  $("seedBtn").disabled = true;
+  await fetch("/api/demo/seed", { method: "POST" });
+  $("seedBtn").disabled = false;
+  await load();
+});
+
+$("runFollowBtn").addEventListener("click", async () => {
+  $("runFollowBtn").disabled = true;
+  await fetch("/api/follow-up/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  $("runFollowBtn").disabled = false;
+  $("runFollowSaved").style.display = "inline";
+  setTimeout(() => ($("runFollowSaved").style.display = "none"), 1500);
+  await load();
+});
+
+$("setups").addEventListener("click", async (e) => {
+  const card = e.target.closest("[data-setup]");
+  if (!card || !e.target.closest("[data-setup-save]")) return;
+  const id = card.dataset.setup;
+  const status = card.querySelector("[data-setup-status]").value;
+  const r = await fetch("/api/setups/" + id, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (r.ok) await load();
+});
+
+$("payBtn").addEventListener("click", async () => {
+  const amount = Number($("payAmount").value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    $("payAmount").focus();
+    return;
+  }
+  const r = await fetch("/api/payments", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount,
+      plan: $("payPlan").value,
+      reference: $("payRef").value,
+      provider: "manual",
+    }),
+  });
+  if (r.ok) {
+    $("payAmount").value = "";
+    $("payRef").value = "";
+    await load();
+  }
+});
+
+$("numberSaveBtn").addEventListener("click", async () => {
+  const body = {
+    shopPhone: $("cShopPhone").value.trim(),
+    ownerPhone: $("cOwnerPhone").value.trim(),
+    carrier: $("cCarrier").value,
+    forwarded: $("cForwarded").checked,
+  };
+  const r = await fetch("/api/connect/number", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (r.ok) {
+    $("numberSaved").style.display = "inline";
+    setTimeout(() => ($("numberSaved").style.display = "none"), 1500);
+    await loadNumber();
+  }
+});
+
+$("addProspectBtn").addEventListener("click", async () => {
+  const payload = {
+    business: $("pBusiness").value.trim(),
+    owner_name: $("pOwner").value.trim(),
+    city: $("pCity").value.trim(),
+    phone: $("pPhone").value.trim(),
+    email: $("pEmail").value.trim(),
+    trade: "hvac",
+  };
+  if (!payload.business || (!payload.phone && !payload.email)) return;
+  const r = await fetch("/api/outreach", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    $("prospectCount").textContent = d.error || "Could not save.";
+    return;
+  }
+  $("pBusiness").value = "";
+  $("pOwner").value = "";
+  $("pCity").value = "";
+  $("pPhone").value = "";
+  $("pEmail").value = "";
+  $("pSaved").style.display = "inline";
+  setTimeout(() => ($("pSaved").style.display = "none"), 1500);
+  if (d.draft && $("draftBox")) {
+    $("draftBox").style.display = "block";
+    $("draftBox").innerHTML = `<span class="label">${esc(d.draft.subject || "Draft")} — copy and send yourself</span>${esc(d.draft.body || "")}`;
+  }
+  await loadOutreach();
+});
+
+$("refBtn").addEventListener("click", async () => {
+  const business = $("refBusiness").value.trim();
+  const email = $("refEmail").value.trim();
+  if (!business || !email) return;
+  const r = await fetch("/api/referral", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ business, email, name: $("refName").value, referredBy: "dashboard" }),
+  });
+  if (r.ok) {
+    $("refBusiness").value = "";
+    $("refEmail").value = "";
+    $("refSaved").style.display = "inline";
+    setTimeout(() => ($("refSaved").style.display = "none"), 1500);
+  }
+});
+
+async function loadKillSwitch() {
+  if (!$("killSwitchBtn")) return;
+  try {
+    const d = await (await fetch("/api/automation")).json();
+    const paused = d.paused === true;
+    $("killSwitchBtn").textContent = paused ? "Resume automation" : "Pause all automation";
+    $("killSwitchMeta").textContent = paused
+      ? ("Automation paused" + (d.pausedAt ? " at " + d.pausedAt : "") + (d.pausedBy ? " by " + d.pausedBy : "") + ".")
+      : "Kill switch is off. Live SMS still requires Twilio.";
+  } catch {}
+}
+
+$("killSwitchBtn").addEventListener("click", async () => {
+  const d = await (await fetch("/api/automation")).json().catch(() => ({}));
+  const pause = d.paused !== true;
+  await fetch("/api/automation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: pause ? "pause" : "resume", by: "owner" }) });
+  await loadKillSwitch();
+});
+
+async function loadOnboarding() {
+  if (!$("onboardMeta")) return;
+  try {
+    const d = await (await fetch("/api/onboarding")).json();
+    const o = d.onboarding || {};
+    $("onboardMeta").textContent = o.note || ("State: " + (o.state || "setup_requested") + ". Live SMS stays off until checklist and Twilio are complete.");
+    $("onboardChips").innerHTML = [
+      `<span class="chip">state <b>${esc(o.state || "setup_requested")}</b></span>`,
+      `<span class="chip">live <b>${o.live ? "yes" : "no"}</b></span>`,
+      `<span class="chip">Twilio <b>${d.sms?.mode || (o.smsLive ? "live" : "simulated")}</b></span>`,
+    ].join("");
+    const e = await (await fetch("/api/entitlements")).json();
+    $("entitleChips").innerHTML = e.ok
+      ? [
+          `<span class="chip">plan <b>${esc(e.plan || "starter")}</b></span>`,
+          `<span class="chip">SMS ${e.usage?.sms || 0}/${e.limits?.smsPerMonth || 500}</span>`,
+          `<span class="chip">conversations ${e.usage?.conversations || 0}/${e.limits?.conversations || 200}</span>`,
+        ].join("")
+      : "";
+    if ($("usageChips")) {
+      $("usageChips").innerHTML = e.ok
+        ? [
+            `<span class="chip">plan <b>${esc(e.plan || "starter")}</b></span>`,
+            `<span class="chip">live SMS <b>${e.usage?.sms || 0}/${e.limits?.smsPerMonth || 500}</b></span>`,
+            `<span class="chip">attempted SMS ${e.usage?.attemptedSms || 0}</span>`,
+            `<span class="chip">conversations ${e.usage?.conversations || 0}/${e.limits?.conversations || 200}</span>`,
+            e.blocked?.sms ? '<span class="chip">SMS cap reached</span>' : "",
+          ].filter(Boolean).join("")
+        : "";
+    }
+    if ($("usageMeta") && e.ok) {
+      $("usageMeta").textContent = e.blocked?.sms
+        ? "Plan SMS cap reached. Live texts are recorded, not sent. Simulated sends do not count."
+        : (e.note || "Live SMS over the monthly cap is recorded, not sent. Simulated sends do not count against the cap.");
+    }
+  } catch {}
+}
+
+async function loadQuietHours() {
+  if (!$("quietMeta")) return;
+  try {
+    const d = await (await fetch("/api/settings")).json();
+    const q = d.quietHours || {};
+    if ($("qhEnabled")) $("qhEnabled").checked = q.enabled !== false;
+    if ($("qhStart") && q.startClock) $("qhStart").value = q.startClock;
+    if ($("qhEnd") && q.endClock) $("qhEnd").value = q.endClock;
+    if ($("qhTz")) $("qhTz").value = d.timeZone || d.business?.timeZone || "";
+    $("quietMeta").textContent = (q.enabled === false ? "Quiet hours off. " : "Quiet hours " + (q.startClock || "21:00") + "-" + (q.endClock || "08:00") + ". ")
+      + "Holds live automated SMS only. Simulated replies still go out immediately.";
+  } catch {}
+}
+
+$("activateLiveBtn").addEventListener("click", async () => {
+  const r = await fetch("/api/onboarding/activate", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+  const d = await r.json().catch(() => ({}));
+  $("activateSaved").style.display = "inline";
+  $("activateSaved").textContent = r.ok ? "Live" : (d.error || "not_ready");
+  setTimeout(() => ($("activateSaved").style.display = "none"), 2000);
+  await loadOnboarding();
+});
+
+$("testRecoveryBtn").addEventListener("click", async () => {
+  const phone = ($("testPhone")?.value || "").trim();
+  const r = await fetch("/api/onboarding/test", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone, name: "Test caller" }),
+  });
+  const d = await r.json().catch(() => ({}));
+  $("testRecoverySaved").style.display = "inline";
+  $("testRecoverySaved").textContent = r.ok ? "Simulated" : (d.error || "failed");
+  if ($("testRecoveryNote")) {
+    $("testRecoveryNote").textContent = d.note || "Test recovery. Reply was simulated. This is not a live text and not verified revenue.";
+  }
+  setTimeout(() => ($("testRecoverySaved").style.display = "none"), 2500);
+  if (r.ok) await load();
+});
+
+$("quietSaveBtn").addEventListener("click", async () => {
+  const start = ($("qhStart")?.value || "21:00").split(":").map(Number);
+  const end = ($("qhEnd")?.value || "08:00").split(":").map(Number);
+  const payload = {
+    quietHours: {
+      enabled: $("qhEnabled") ? $("qhEnabled").checked : true,
+      startMin: (start[0] || 0) * 60 + (start[1] || 0),
+      endMin: (end[0] || 0) * 60 + (end[1] || 0),
+    },
+    timeZone: ($("qhTz")?.value || "").trim(),
+  };
+  const r = await fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  $("quietSaved").style.display = "inline";
+  $("quietSaved").textContent = r.ok ? "Saved" : "Failed";
+  setTimeout(() => ($("quietSaved").style.display = "none"), 2000);
+  await loadQuietHours();
+});
+
+if ($("deleteBizId")) {
+  $("deleteBizId").addEventListener("input", () => {
+    if (!$("exportAccountBtn")) return;
+    const biz = $("deleteBizId").value.trim();
+    $("exportAccountBtn").href = "/api/account/export" + (biz ? "?businessId=" + encodeURIComponent(biz) : "");
+  });
+}
+
+$("deleteAccountBtn").addEventListener("click", async () => {
+  const businessId = $("deleteBizId").value.trim();
+  const confirm = $("deleteConfirm").value.trim();
+  if (!businessId || confirm !== "DELETE") {
+    $("deleteConfirm").focus();
+    return;
+  }
+  const r = await fetch("/api/account", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ businessId, confirm }),
+  });
+  const d = await r.json().catch(() => ({}));
+  $("deleteSaved").style.display = "inline";
+  $("deleteSaved").textContent = r.ok ? ("Deleted " + (d.leadsDeleted || 0) + " leads") : (d.error || "refused");
+  setTimeout(() => ($("deleteSaved").style.display = "none"), 2500);
+  if (r.ok) await load();
+});
+
+$("logoutBtn").addEventListener("click", async () => {
+  await fetch("/api/auth/logout", { method: "POST" });
+  location.href = "/login";
+});
+
+load();
+setInterval(load, 15000);
+</script>
+</body>
+</html>

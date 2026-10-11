@@ -1,0 +1,50 @@
+# Render.com blueprint for RingBack.
+#
+# Push this repo to GitHub, then in Render: New > Blueprint > pick the repo.
+# Render will prompt for the secret values below.
+#
+# A persistent disk is required so the SQLite database survives deploys.
+
+services:
+  - type: web
+    name: ringback
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: HOST
+        value: 0.0.0.0
+      - key: RINGBACK_DATA_DIR
+        value: /data
+      - key: RB_SECURE_COOKIES
+        value: "1"
+      - key: RB_ADMIN_EMAIL
+        sync: false
+      - key: RB_ADMIN_PASSWORD
+        sync: false
+      - key: RB_PAYMENT_LINK
+        sync: false
+      - key: RB_PAYMENT_LINK_PROFESSIONAL
+        sync: false
+      - key: RB_PUBLIC_URL
+        sync: false
+      - key: RB_PAYPAL_ME
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: USER_LLM_API_KEY
+        sync: false
+      - key: USER_LLM_BASE_URL
+        sync: false
+    disk:
+      name: ringback-data
+      mountPath: /data
+      sizeGB: 1

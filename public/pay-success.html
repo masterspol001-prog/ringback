@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RingBack — Payment return</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230b1220'/%3E%3Cpath d='M28 26h12l6 14-8 6a38 38 0 0016 16l6-8 14 6v12a8 8 0 01-9 8A58 58 0 0120 35a8 8 0 018-9z' fill='%232ee6a8'/%3E%3C/svg%3E" />
+<style>
+:root{--bg:#080d16;--card:#111c2e;--line:#1e2d45;--text:#e8eef7;--muted:#93a4bd;--accent:#2ee6a8;--accent2:#38bdf8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(900px 500px at 60% -10%,#12243d 0%,var(--bg) 60%) no-repeat,var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px}
+.card{width:100%;max-width:440px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;margin-bottom:14px}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#04121a;font-weight:900}
+h1{font-size:22px;margin:0 0 10px;letter-spacing:-.02em}
+p{color:var(--muted);font-size:14.5px;line-height:1.6;margin:0 0 12px}
+.note{background:#0b1524;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13.5px;color:var(--muted)}
+a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand"><span class="logo">R</span> RingBack</div>
+  <h1>Returned from checkout</h1>
+  <p>This page does not confirm that money arrived. RingBack never marks a shop paid because a browser landed here.</p>
+  <p class="note">If you paid, email hello@ringback.app with the receipt, or record the payment on the dashboard after it actually posts. If you have not paid, nothing was charged.</p>
+  <p><a href="/#pricing">Back to pricing</a> · <a href="/dashboard">Dashboard</a></p>
+</div>
+</body>
+</html>
